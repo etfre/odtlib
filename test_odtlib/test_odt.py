@@ -6,19 +6,20 @@ import tempfile
 import zipfile
 import shutil
 import copy
+import odtlib
+from test_odtlib import specs
 from odtlib import odt
-from odtlib.tests import specs
 
 class TestOdtlib(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
         cls.template_doc = odt.Odt()
-        cls.full_doc = odt.Odt(os.path.join(os.path.dirname(__file__), '..', 'templates', 'full.odt'))
+        cls.full_doc = odt.Odt(os.path.join(os.path.dirname(__file__), '..', 'odtlib', 'templates', 'full.odt'))
 
     def test_template_files(self):
         self.write_dir = tempfile.mkdtemp()
-        template = os.path.join(os.path.dirname(__file__), '..', 'templates', 'new.odt')
+        template = os.path.join(os.path.dirname(__file__), '..', 'odtlib', 'templates', 'new.odt')
         with zipfile.ZipFile(template, 'r') as odtzip:
             odtzip.extractall(self.write_dir)
         template_files = copy.deepcopy(specs.TEMPLATE_FILES)
