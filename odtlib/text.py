@@ -4,23 +4,18 @@ from odtlib.namespace import NSMAP, qn
 
 class Paragraph:
     def __init__(self, ele=None, text=''):
+        assert not (ele is not None and len(text))
         if ele is not None:
             self._ele = ele
         else:
             self._ele = utilities.makeelement('text', 'p', text)
-        self._rawtext = ''
-        if self._ele.text is not None:
-            self._rawtext = self._ele.text
         self.span_list = self.__build_span_list__()
-        for span in self.span_list:
-            if span.text is not None:
-                self._rawtext += span.text
 
     def search(self, value):
         '''
         Search the paragraph for a regular expression.
         '''
-        match = re.search(value, self._rawtext)
+        match = re.search(value, self.text)
         if match is not None:
             return True
         return False
@@ -48,30 +43,41 @@ class Paragraph:
 #         
     @property
     def text(self):
-        testlist = []
+        textlist = []
         if self._ele.text is not None:
-            testlist.append(self._ele.text)
+            textlist.append(self._ele.text)
         for span in self._ele.iter(qn('text', 'span')):
             if span.text is not None:
-                testlist.append(span.text)
+                textlist.append(span.text)
             if span.tail is not None:
-                testlist.append(span.tail)
-        return ''.join(testlist)
+                textlist.append(span.tail)
+        return ''.join(textlist)
 
     @text.setter
     def text(self, value):
-        #FIXME
-        if len(value) < len(self._rawtext) or value[:len(self._rawtext)] != self._rawtext:
-            utilities.remove_children(self._ele)
-            self._ele.text = value
-            self.span_list = []
+        # If the new text value is shorter or different than before
+        if len(value) < len(self.text) or value[:len(self.text)] != self.text:
+            if self._ele.text is None and len(self.span_list):
+                for i, child in enumerate(self._ele.iterchildren()):
+                    if i == 0:
+                        child.text = value
+                        child.tail = None
+                        continue
+                    self._ele.remove(child)
+                self.span_list = self.span_list[:1]
+            else:
+                utilities.remove_children(self._ele)
+                self._ele.text = value
+                self.span_list = []
         else:
-            extra = value[len(self._rawtext):]
+            extra = value[len(self.text):]
             if len(self.span_list):
-                self.span_list[-1].text += extra
+                if self.span_list[-1]._ele.tail is not None:
+                    self.span_list[-1]._ele.tail = ''.join([ self.span_list[-1]._ele.tail, extra])
+                else:
+                    self.span_list[-1].text = ''.join([self.span_list[-1].text, extra])
             else:
                 self._ele.text = value
-        self._rawtext = value
 
     def __build_span_list__(self):
         span_list = []
@@ -82,17 +88,16 @@ class Paragraph:
 
 class Span:
     def __init__(self, ele=None, text=''):
+        assert not (ele is not None and len(text))
         if ele is not None:
             self._ele = ele
         else:
             self._ele = utilities.makeelement('text', 'span', text)
-        self._rawtext = self._ele.text
 
     @property
     def text(self):
-        return self._rawtext
+        return self._ele.text
 
     @text.setter
     def text(self, value):
-        self._rawtext = value
         self._ele.text = value
