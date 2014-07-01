@@ -38,16 +38,20 @@ class TestOdtlib(unittest.TestCase):
             'something mysterious! Something vaguely ominous and chilling! '
             'Something like, “The Sinister Icy Black Hand of Death Club”!')
 
+    def test_paragraph_text_setter(self):
+        para = self.full_doc.paragraph_list[2]
+        para.text += ' Or else!'
+        self.assertEqual(para.text, "Don't sell the bike shop, Orville. Or else!")
+        para.text = 'It builds character. Keep at it.'
+        self.assertEqual(para.text, 'It builds character. Keep at it.')
+
     def test_search(self):
         search_result = self.full_doc.search('mysterious')
         self.assertEqual(len(search_result), 1)
 
-    def test_paragraph_setup(self):
-        self.assertEqual(len(self.full_doc.paragraph_list), 4)
-
     def test_replace(self):
         self.full_doc.replace('smock', 'sweatervest')
-        self.assertEqual(self.full_doc.paragraph_list[2].text, 'I like my sweatervest. '
+        self.assertEqual(self.full_doc.paragraph_list[4].text, 'I like my sweatervest. '
             'You can tell the quality of the artist by the quality of his sweatervest. '
             'Actually, I just like to say sweatervest. sweatervest sweatervest '
             'sweatervest sweatervest sweatervest sweatervest.')

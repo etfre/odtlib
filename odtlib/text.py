@@ -24,7 +24,7 @@ class Paragraph:
         '''
         Replace all instances of a regular expression match in the paragraph with
         another string. If a match does not lie entirely within a single element,
-        then the new text will be appended only to the first element. 
+        then the new text will be appended only to the first element in the match. 
         '''
         searchre = re.compile(search_value)
         match_slices = [match.span() for match in re.finditer(searchre, self.text)]
