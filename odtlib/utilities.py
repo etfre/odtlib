@@ -1,5 +1,6 @@
 import zipfile
 import os
+import re
 import collections
 from lxml import etree
 from odtlib.namespace import NSMAP, qn
@@ -27,6 +28,12 @@ def write_xml_files(xmlfiles, folder):
 def makeelement(prefix, tagname, text='', attributes={}):
     namespace = qn(prefix, tagname)
     newelement = etree.Element(namespace, nsmap=NSMAP)
+    for k, v in attributes.items():
+        try:
+            newelement.set(k, v)
+        except ValueError:
+            spl = k.split(':')
+            newelement.set(qn(spl[0], spl[1]), v)
     if text: newelement.text = text
     return newelement
 
@@ -100,8 +107,11 @@ def merge_placeholders(eledict):
             if list(eledict.items())[i-1][0].tail is None: list(eledict.items())[i-1][0].tail = ''
             list(eledict.items())[i-1][0].tail += ele.text
 
+def get_tag(namespace):
+    return re.match(r'{[^}]*}(\S+)', namespace).group(1)
 
-
+def get_prefix(namespace):
+    return re.match(r'{([^}]*)}', namespace).group(1)
 
 
 
