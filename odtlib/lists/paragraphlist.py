@@ -15,12 +15,6 @@ class ParagraphList(baselist.ElementList):
         self._parent.insert(new_i, para._ele)
         self._list[i] = para
 
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return '{}'.format(self._list)
-
     def append(self, para):
         para = check_paragraph_input(para, self._default_style)
         self._list.append(para)
@@ -38,10 +32,6 @@ class ParagraphList(baselist.ElementList):
         shift = get_shift(i, self._parent)
         self._parent.insert(i+shift, para._ele)
         self._list.insert(i, para)
-
-    def pop(self, i=-1):
-        self._parent.remove(self._list[i]._ele)
-        return self._list.pop(i)
 
     def remove(self, para):
         check_paragraph_input(para, self._default_style)
