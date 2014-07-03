@@ -12,9 +12,7 @@ class Odt(baseodt.BaseOdt):
     def __init__(self, filename=None):
         super().__init__(filename)
         data = [text.Paragraph._from_element(p) for p in self._text.findall(qn('text', 'p'))]
-        self.paragraphs = paragraphlist.ParagraphList(self._text,
-                                        self._default_paragraph_style_name,
-                                        data=data)
+        self.paragraphs = paragraphlist.ParagraphList(self._text, self._default_paragraph_style_name, data=data)
 
     def save(self, filename):
         shared.write_xml_files(self._xmlfiles, self._write_dir)

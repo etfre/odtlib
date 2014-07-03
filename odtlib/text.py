@@ -1,5 +1,4 @@
 import re
-# from odtlib import 
 from odtlib.utilities import shared
 from odtlib.lists import spanlist
 from odtlib.namespace import NSMAP, qn
@@ -8,9 +7,8 @@ class Paragraph:
     def __init__(self, text='', style=None):
         self.style = style
         self._ele = shared.makeelement('text', 'p', text)
-        data = [Span._from_element(s) for s in self._ele.findall(qn('text', 'span'))]
-        self.spans = spanlist.SpanList(self._ele, data=data)
-        # self.spans = self._build_span_list()
+        # data = [Span._from_element(s) for s in self._ele.findall(qn('text', 'span'))]
+        # self.spans = spanlist.SpanList(self._ele, data=data)
 
     @classmethod
     def _from_element(cls, ele):

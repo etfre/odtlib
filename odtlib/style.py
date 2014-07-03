@@ -1,5 +1,5 @@
 class Style:
-	def __init__(self, ele, name, family, attributes={}):
+	def __init__(self, name, family, attributes={}):
 		self._ele = None
 		self.name = name
 		self.family = family
