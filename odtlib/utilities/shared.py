@@ -113,18 +113,19 @@ def get_tag(namespace):
 def get_prefix(namespace):
     return re.match(r'{([^}]*)}', namespace).group(1)
 
+def get_default_paragraph_style_name(doc):
+    auto = doc.find(qn('office', 'automatic-styles'))
+    for child in auto.iterchildren(qn('style', 'style')):
+        if (set((qn('style', 'family'), qn('style', 'name'))) <= set(child.attrib) and
+        child.attrib[qn('style', 'family')] == 'paragraph'):
+            return child.attrib[qn('style', 'name')]
+    return ''
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def get_style_name(element):
+	'''
+	Given a <text:p> or <text:span> element, return a string
+	indicating the name of the associated style element
+	'''
+	assert element.tag in [qn('text', 'p'), qn('text', 'span')]
+	for attribute, value in element.attrib.items():
+		if attribute == qn('text', 'style-name'): return value

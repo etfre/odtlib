@@ -8,14 +8,14 @@ import shutil
 import copy
 import odtlib
 from test_odtlib import specs
-from odtlib import odt
+from odtlib import api
 
 class TestOdtlib(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.template_doc = odt.Odt()
-        cls.full_doc = odt.Odt(os.path.join(os.path.dirname(__file__), '..', 'odtlib', 'templates', 'full.odt'))
+        cls.template_doc = api.Odt()
+        cls.full_doc = api.Odt(os.path.join(os.path.dirname(__file__), '..', 'odtlib', 'templates', 'full.odt'))
 
     def test_template_files(self):
         self.write_dir = tempfile.mkdtemp()
@@ -33,13 +33,13 @@ class TestOdtlib(unittest.TestCase):
         shutil.rmtree(self.write_dir)
 
     def test_paragraph_text_getter(self):
-        paratext = self.full_doc.paragraph_list[0].text
+        paratext = self.full_doc.paragraphs[0].text
         self.assertEqual(paratext, 'This is a top-secret society! The name should be '
             'something mysterious! Something vaguely ominous and chilling! '
             'Something like, “The Sinister Icy Black Hand of Death Club”!')
 
     def test_paragraph_text_setter(self):
-        para = self.full_doc.paragraph_list[2]
+        para = self.full_doc.paragraphs[2]
         para.text += ' Or else!'
         self.assertEqual(para.text, "Don't sell the bike shop, Orville. Or else!")
         para.text = 'It builds character. Keep at it.'
@@ -50,16 +50,19 @@ class TestOdtlib(unittest.TestCase):
         self.assertEqual(len(search_result), 1)
 
     def test_replace(self):
-        self.full_doc.replace('smock', 'sweatervest')
-        self.assertEqual(self.full_doc.paragraph_list[4].text, 'I like my sweatervest. '
-            'You can tell the quality of the artist by the quality of his sweatervest. '
-            'Actually, I just like to say sweatervest. sweatervest sweatervest '
-            'sweatervest sweatervest sweatervest sweatervest.')
+        self.full_doc.replace('smock', 'beret')
+        self.assertEqual(self.full_doc.paragraphs[4].text, 'I like my beret. '
+            'You can tell the quality of the artist by the quality of his beret. '
+            'Actually, I just like to say beret. beret beret beret beret beret '
+            'beret.')
 
-    def test_add_paragraph(self):
+    def test_append_paragraph(self):
+        self.assertEqual(len(self.full_doc.paragraphs), 5)
         paratext = 'Van Gogh would’ve sold more than one painting if he’d put tigers in them.'
-        self.full_doc.add_paragraph(paratext)
-        self.assertEqual(self.full_doc.paragraph_list[-1].text, paratext)
+        self.full_doc.paragraphs.append(paratext)
+        self.assertEqual(self.full_doc.paragraphs[-1].text, paratext)
+        del self.full_doc.paragraphs[-1]
+        self.assertEqual(len(self.full_doc.paragraphs), 5)
 
     def test_template_save(self):
         savename = 'templatesave.odt'

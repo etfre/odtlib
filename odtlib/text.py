@@ -1,15 +1,15 @@
 import re
-from odtlib import utilities
+from odtlib.utilities import shared
 from odtlib.namespace import NSMAP, qn
 
 class Paragraph:
-    def __init__(self, ele=None, text=''):
+    def __init__(self, text='', ele=None, style=None):
         assert not (ele is not None and len(text))
         if ele is not None:
             self._ele = ele
         else:
-            self._ele = utilities.makeelement('text', 'p', text)
-        self.span_list = self.__build_span_list__()
+            self._ele = shared.makeelement('text', 'p', text)
+        self.spans = self.__build_span_list__()
 
     def search(self, value):
         '''
@@ -28,19 +28,19 @@ class Paragraph:
         '''
         searchre = re.compile(search_value)
         match_slices = [match.span() for match in re.finditer(searchre, self.text)]
-        eledict = utilities.create_replace_dict(self._ele, match_slices)
+        eledict = shared.create_replace_dict(self._ele, match_slices)
         # replace in reversed order to avoid dealing with shifted index positions
         for match in reversed(match_slices):
             for ele, info in reversed(list(eledict.items())):
                 if info[0] <= match[1]:
                     if match[0] < info[0]:
-                         ele.text = utilities.remove_substr(0, match[1] - info[0], ele.text)
+                         ele.text = shared.remove_substr(0, match[1] - info[0], ele.text)
                     else:
-                        ele.text = utilities.remove_substr(match[0] - info[0], match[1] - info[0], ele.text)
-                        ele.text = utilities.insert_substr(match[0] - info[0], replace_value, ele.text)
+                        ele.text = shared.remove_substr(match[0] - info[0], match[1] - info[0], ele.text)
+                        ele.text = shared.insert_substr(match[0] - info[0], replace_value, ele.text)
                         break              
-        utilities.merge_placeholders(eledict)
-#         
+        shared.merge_placeholders(eledict)
+
     @property
     def text(self):
         textlist = []
@@ -57,42 +57,46 @@ class Paragraph:
     def text(self, value):
         # If the new text value is shorter or different than before
         if len(value) < len(self.text) or value[:len(self.text)] != self.text:
-            if self._ele.text is None and len(self.span_list):
+            if self._ele.text is None and len(self.spans):
                 for i, child in enumerate(self._ele.iterchildren()):
                     if i == 0:
                         child.text = value
                         child.tail = None
                         continue
                     self._ele.remove(child)
-                self.span_list = self.span_list[:1]
+                self.spans = self.spans[:1]
             else:
-                utilities.remove_children(self._ele)
+                shared.remove_children(self._ele)
                 self._ele.text = value
-                self.span_list = []
+                self.spans = []
         else:
             extra = value[len(self.text):]
-            if len(self.span_list):
-                if self.span_list[-1]._ele.tail is not None:
-                    self.span_list[-1]._ele.tail = ''.join([ self.span_list[-1]._ele.tail, extra])
+            if len(self.spans):
+                if self.spans[-1]._ele.tail is not None:
+                    self.spans[-1]._ele.tail = ''.join([ self.spans[-1]._ele.tail, extra])
                 else:
-                    self.span_list[-1].text = ''.join([self.span_list[-1].text, extra])
+                    self.spans[-1].text = ''.join([self.spans[-1].text, extra])
             else:
                 self._ele.text = value
 
     def __build_span_list__(self):
-        span_list = []
+        spans = []
         for etree_span in self._ele.iter(qn('text', 'span')):
             span = Span(ele=etree_span)
-            span_list.append(span)
-        return span_list
+            spans.append(span)
+        return spans
+
+    def __merge_placeholder_spans__(self):
+        pass
+
 
 class Span:
-    def __init__(self, ele=None, text=''):
+    def __init__(self, ele=None, text='', style=None):
         assert not (ele is not None and len(text))
         if ele is not None:
             self._ele = ele
         else:
-            self._ele = utilities.makeelement('text', 'span', text)
+            self._ele = shared.makeelement('text', 'span', text)
 
     @property
     def text(self):

@@ -3,7 +3,8 @@ import tempfile
 import zipfile
 import os
 import shutil
-from odtlib import utilities
+from odtlib.utilities import shared, odt
+from odtlib.base.lists import ParagraphList
 from odtlib.style import Style
 from odtlib.namespace import NSMAP, qn
 from odtlib.text import Paragraph, Span
@@ -15,16 +16,15 @@ class BaseOdt:
         self._write_dir = tempfile.mkdtemp()
         with zipfile.ZipFile(filename, 'r') as odtzip:
             odtzip.extractall(self._write_dir)
-        self._xmlfiles = utilities.load_xml_files(self._write_dir)
+        self._xmlfiles = shared.load_xml_files(self._write_dir)
+        self._default_paragraph_style_name = shared.get_default_paragraph_style_name(self._xmlfiles['content.xml'])
         self._body = self._xmlfiles['content.xml'].find(qn('office', 'body'))
         self._text = self._body.find(qn('office', 'text'))
+        odt.convert_to_spans(self._text)
 
-    def __build_paragraph_list__(self):
-        para_list = []
-        for etree_para in self._body.iter(qn('text', 'p')):
-            p = Paragraph(ele=etree_para)
-            para_list.append(p)
-        return para_list
+    # def __build_paragraph_list__(self):
+    #     return 
+    #     return para_list
 
     @property
     def _styles(self):
@@ -37,8 +37,8 @@ class BaseOdt:
                 # xml parsing is never pretty
                 for style in styles.iterchildren(qn('style', 'style')):
                     for k, v in style.attrib.items():
-                        prefix = utilities.get_prefix(k)
-                        tag = utilities.get_tag(k)
+                        prefix = shared.get_prefix(k)
+                        tag = shared.get_tag(k)
                         if tag == 'name': name = v
                         if tag == 'family': family = v
                     attribs = style.find(qn('style', 'text-properties')).attrib
