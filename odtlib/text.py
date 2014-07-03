@@ -1,15 +1,25 @@
 import re
+# from odtlib import 
 from odtlib.utilities import shared
+from odtlib.lists import spanlist
 from odtlib.namespace import NSMAP, qn
 
 class Paragraph:
-    def __init__(self, text='', ele=None, style=None):
-        assert not (ele is not None and len(text))
-        if ele is not None:
-            self._ele = ele
-        else:
-            self._ele = shared.makeelement('text', 'p', text)
-        self.spans = self.__build_span_list__()
+    def __init__(self, text='', style=None):
+        self.style = style
+        self._ele = shared.makeelement('text', 'p', text)
+        data = [Span._from_element(s) for s in self._ele.findall(qn('text', 'span'))]
+        self.spans = spanlist.SpanList(self._ele, data=data)
+        # self.spans = self._build_span_list()
+
+    @classmethod
+    def _from_element(cls, ele):
+        para = cls()
+        para.text = shared.get_paragraph_text(ele)
+        para.style = shared.get_style_name(ele)
+        para._ele = ele
+        para.spans = spanlist.SpanList(ele)
+        return para
 
     def search(self, value):
         '''
@@ -43,15 +53,7 @@ class Paragraph:
 
     @property
     def text(self):
-        textlist = []
-        if self._ele.text is not None:
-            textlist.append(self._ele.text)
-        for span in self._ele.iter(qn('text', 'span')):
-            if span.text is not None:
-                textlist.append(span.text)
-            if span.tail is not None:
-                textlist.append(span.tail)
-        return ''.join(textlist)
+        return shared.get_paragraph_text(self._ele)
 
     @text.setter
     def text(self, value):
@@ -71,32 +73,38 @@ class Paragraph:
                 self.spans = []
         else:
             extra = value[len(self.text):]
-            if len(self.spans):
-                if self.spans[-1]._ele.tail is not None:
-                    self.spans[-1]._ele.tail = ''.join([ self.spans[-1]._ele.tail, extra])
+            if len(self._ele.findall(qn('text', 'span'))):
+                e = self._ele.findall(qn('text', 'span'))[-1]
+                if e.tail is not None:
+                    e.tail = ''.join([e.tail, extra])
                 else:
-                    self.spans[-1].text = ''.join([self.spans[-1].text, extra])
+                    e.text = ''.join([e.text, extra])
             else:
+                self._ele.tail = None
                 self._ele.text = value
 
-    def __build_span_list__(self):
+    def _build_span_list(self):
         spans = []
         for etree_span in self._ele.iter(qn('text', 'span')):
-            span = Span(ele=etree_span)
+            span = Span._from_element(span)
             spans.append(span)
         return spans
 
-    def __merge_placeholder_spans__(self):
+    def _merge_placeholder_spans(self):
         pass
 
 
 class Span:
-    def __init__(self, ele=None, text='', style=None):
-        assert not (ele is not None and len(text))
-        if ele is not None:
-            self._ele = ele
-        else:
+    def __init__(self, text='', style=None):
             self._ele = shared.makeelement('text', 'span', text)
+
+    @classmethod
+    def _from_element(cls, ele):
+        t = ele.text
+        s = shared.get_style_name(ele)
+        span = cls(t, s)
+        span._ele = ele
+        return span
 
     @property
     def text(self):

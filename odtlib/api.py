@@ -2,17 +2,17 @@ from lxml import etree
 import os
 import shutil
 import re
-from odtlib.text import Paragraph, Span
-from odtlib.base.lists import ParagraphList
-from odtlib.base.baseodt import BaseOdt
+from odtlib import text
+from odtlib.lists import paragraphlist
+from odtlib.base import baseodt
 from odtlib.utilities import shared
 from odtlib.namespace import NSMAP, qn
 
-class Odt(BaseOdt):
+class Odt(baseodt.BaseOdt):
     def __init__(self, filename=None):
         super().__init__(filename)
-        data = [Paragraph(ele=p) for p in self._text.findall(qn('text', 'p'))]
-        self.paragraphs = ParagraphList(self._text,
+        data = [text.Paragraph._from_element(p) for p in self._text.findall(qn('text', 'p'))]
+        self.paragraphs = paragraphlist.ParagraphList(self._text,
                                         self._default_paragraph_style_name,
                                         data=data)
 

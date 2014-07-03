@@ -2,12 +2,9 @@ from lxml import etree
 import tempfile
 import zipfile
 import os
-import shutil
 from odtlib.utilities import shared, odt
-from odtlib.base.lists import ParagraphList
-from odtlib.style import Style
+from odtlib import style
 from odtlib.namespace import NSMAP, qn
-from odtlib.text import Paragraph, Span
 
 class BaseOdt:
     def __init__(self, filename):
@@ -22,10 +19,6 @@ class BaseOdt:
         self._text = self._body.find(qn('office', 'text'))
         odt.convert_to_spans(self._text)
 
-    # def __build_paragraph_list__(self):
-    #     return 
-    #     return para_list
-
     @property
     def _styles(self):
         '''
@@ -35,12 +28,12 @@ class BaseOdt:
         for styles in self._xmlfiles['content.xml'].iterchildren():
             if styles.tag in [qn('office', 'automatic-styles'), qn('office', 'styles')]:
                 # xml parsing is never pretty
-                for style in styles.iterchildren(qn('style', 'style')):
-                    for k, v in style.attrib.items():
+                for s in styles.iterchildren(qn('style', 'style')):
+                    for k, v in s.attrib.items():
                         prefix = shared.get_prefix(k)
                         tag = shared.get_tag(k)
                         if tag == 'name': name = v
                         if tag == 'family': family = v
-                    attribs = style.find(qn('style', 'text-properties')).attrib
-                    stylelist.append(Style(style, name, family, attribs))
+                    attribs = s.find(qn('style', 'text-properties')).attrib
+                    stylelist.append(style.Style(s, name, family, attribs))
         return stylelist

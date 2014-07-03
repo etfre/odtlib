@@ -121,11 +121,22 @@ def get_default_paragraph_style_name(doc):
             return child.attrib[qn('style', 'name')]
     return ''
 
+def get_paragraph_text(ele):
+    textlist = []
+    if ele.text is not None:
+        textlist.append(ele.text)
+    for span in ele.iter(qn('text', 'span')):
+        if span.text is not None:
+            textlist.append(span.text)
+        if span.tail is not None:
+            textlist.append(span.tail)
+    return ''.join(textlist)
+
 def get_style_name(element):
-	'''
-	Given a <text:p> or <text:span> element, return a string
-	indicating the name of the associated style element
-	'''
-	assert element.tag in [qn('text', 'p'), qn('text', 'span')]
-	for attribute, value in element.attrib.items():
-		if attribute == qn('text', 'style-name'): return value
+    '''
+    Given a <text:p> or <text:span> element, return a string
+    indicating the name of the associated style element
+    '''
+    assert element.tag in [qn('text', 'p'), qn('text', 'span')]
+    for attribute, value in element.attrib.items():
+        if attribute == qn('text', 'style-name'): return value

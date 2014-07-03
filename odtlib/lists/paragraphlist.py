@@ -1,25 +1,12 @@
-from collections import MutableSequence
-from odtlib import utilities
-from odtlib.text import Paragraph, Span
+from odtlib.lists import baselist
+from odtlib import text
+from odtlib.utilities import shared
 from odtlib.namespace import NSMAP, qn
 
-class ParagraphList:
+class ParagraphList(baselist.ElementList):
     def __init__(self, parent, default_style, data=[]):
-        super().__init__()
-        self._parent = parent
+        super().__init__(parent, data)
         self._default_style = default_style
-        self._list = []
-        self._list.extend(data)
-
-    def __len__(self):
-        return len(self._list)
-
-    def __getitem__(self, i):
-        return self._list[i]
-
-    def __delitem__(self, i):
-        self._parent.remove(self._list[i]._ele)
-        del self._list[i]
 
     def __setitem__(self, i, para):
         para = check_paragraph_input(para, self._default_style)
@@ -71,10 +58,11 @@ class ParagraphList:
 
 def check_paragraph_input(para, style):
     if isinstance(para, str):
-        return Paragraph(para, style=style)
-    if not isinstance(para, Paragraph):
+        return text.Paragraph(para, style=style)
+    if not isinstance(para, text.Paragraph):
         raise ValueError('Input to the paragraph list must be strings or Paragraph objects')
     return para
+
 
 def reverse_index(i, wrapper_list):
     '''
