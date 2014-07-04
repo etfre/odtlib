@@ -140,10 +140,3 @@ def get_style_name(element):
     assert element.tag in [qn('text', 'p'), qn('text', 'span')]
     for attribute, value in element.attrib.items():
         if attribute == qn('text', 'style-name'): return value
-
-def check_paragraph_input(para, style):
-    if isinstance(para, str):
-        return text.Paragraph(para, style=style)
-    if not isinstance(para, text.Paragraph):
-        raise ValueError('Input to the paragraph list must be strings or Paragraph objects')
-    return para

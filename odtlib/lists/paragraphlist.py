@@ -1,18 +1,12 @@
 from odtlib.lists import baselist
 from odtlib import text
-from odtlib.utilities import shared
+from odtlib.utilities import listhelpers
 from odtlib.namespace import NSMAP, qn
 
 class ParagraphList(baselist.ElementList):
     def __init__(self, parent, default_style, data=[]):
-        super().__init__(parent, check_paragraph_input, default_style, data)         
+        super().__init__(parent, listhelpers.check_paragraph_input, default_style, data)         
 
-def check_paragraph_input(para, style):
-    if isinstance(para, str):
-        return text.Paragraph(para, style=style)
-    if not isinstance(para, text.Paragraph):
-        raise ValueError('Input to the paragraph list must be strings or Paragraph objects')
-    return para
 
 def reverse_index(i, wrapper_list):
     '''
