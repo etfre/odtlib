@@ -1,14 +1,13 @@
 import re
 from odtlib.utilities import shared
-from odtlib.lists import spanlist
+from odtlib.lists import baselist
 from odtlib.namespace import NSMAP, qn
 
 class Paragraph:
     def __init__(self, text='', style=None):
         self.style = style
         self._ele = shared.makeelement('text', 'p', text)
-        # data = [Span._from_element(s) for s in self._ele.findall(qn('text', 'span'))]
-        # self.spans = spanlist.SpanList(self._ele, data=data)
+        self.spans = baselist.ElementList(self._ele, check_span_input)
 
     @classmethod
     def _from_element(cls, ele):
@@ -16,7 +15,8 @@ class Paragraph:
         para.text = shared.get_paragraph_text(ele)
         para.style = shared.get_style_name(ele)
         para._ele = ele
-        para.spans = spanlist.SpanList(ele)
+        data = [Span._from_element(s) for s in ele.findall(qn('text', 'span'))]
+        para.spans = baselist.ElementList(ele, check_span_input, data=data)
         return para
 
     def search(self, value):
@@ -81,26 +81,15 @@ class Paragraph:
                 self._ele.tail = None
                 self._ele.text = value
 
-    def _build_span_list(self):
-        spans = []
-        for etree_span in self._ele.iter(qn('text', 'span')):
-            span = Span._from_element(span)
-            spans.append(span)
-        return spans
-
-    def _merge_placeholder_spans(self):
-        pass
-
 
 class Span:
     def __init__(self, text='', style=None):
-            self._ele = shared.makeelement('text', 'span', text)
+        self.style = style
+        self._ele = shared.makeelement('text', 'span', text)
 
     @classmethod
     def _from_element(cls, ele):
-        t = ele.text
-        s = shared.get_style_name(ele)
-        span = cls(t, s)
+        span = cls(ele.text, shared.get_style_name(ele))
         span._ele = ele
         return span
 
@@ -111,3 +100,18 @@ class Span:
     @text.setter
     def text(self, value):
         self._ele.text = value
+
+
+def check_paragraph_input(para, style):
+    if isinstance(para, str):
+        return Paragraph(para, style)
+    if not isinstance(para, Paragraph):
+        raise ValueError('Input to the paragraph list must be strings or Paragraph objects')
+    return para
+
+def check_span_input(span, style):
+    if isinstance(span, str):
+        return Span(span, style)
+    if not isinstance(span, Span):
+        raise ValueError('Input to the span list must be strings or Span objects')
+    return span

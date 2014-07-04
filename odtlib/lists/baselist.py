@@ -6,6 +6,7 @@ class ElementList:
         '''
         Container for Paragraph and Span wrappers.
         '''
+        # print(data)
         self._parent = parent
         self._check_function = check_function
         self._default_style = default_style
@@ -69,6 +70,25 @@ class ElementList:
         else:
             self._list.remove(wrapper)
             self._parent.remove(wrapper._ele)
+
+def check_paragraph_input(para, style):
+    if isinstance(para, str):
+        return text.Paragraph(para, style)
+    if not isinstance(para, text.Paragraph):
+        raise ValueError('Input to the paragraph list must be strings or Paragraph objects')
+    return para
+
+def check_span_input(span, style):
+    if isinstance(span, str):
+        return text.Span(span, style)
+    if not isinstance(span, text.Span):
+        raise ValueError('Input to the span list must be strings or Span objects')
+    return span
+
+def check_style_input(style, default):
+    assert default is None
+    if not isinstance(span, text.Style):
+        raise ValueError('Input to the style list must be Style objects')
 
 def reverse_index(i, wrapper_list):
     '''

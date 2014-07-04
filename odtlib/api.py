@@ -5,7 +5,7 @@ import re
 from odtlib import text
 from odtlib.lists import baselist
 from odtlib.base import baseodt
-from odtlib.utilities import shared, listhelpers, odt
+from odtlib.utilities import shared, odt
 from odtlib.namespace import NSMAP, qn
 
 class Odt(baseodt.BaseOdt):
@@ -13,7 +13,7 @@ class Odt(baseodt.BaseOdt):
         super().__init__(filename)
         data = [text.Paragraph._from_element(p) for p in self._text.findall(qn('text', 'p'))]
         self.paragraphs = baselist.ElementList(self._text,
-                                               listhelpers.check_paragraph_input,
+                                               text.check_paragraph_input,
                                                self._default_paragraph_style_name,
                                                data=data)
 
