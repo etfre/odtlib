@@ -2,7 +2,7 @@ from lxml import etree
 import os
 import shutil
 import re
-from odtlib import text
+from odtlib import text, style
 from odtlib.lists import baselist
 from odtlib.base import baseodt
 from odtlib.utilities import shared, odt
@@ -16,9 +16,12 @@ class Odt(baseodt.BaseOdt):
                                                text.check_paragraph_input,
                                                self._default_paragraph_style_name,
                                                data=data)
+        self.styles = style.build_styles_list(self._xmlfiles['content.xml'])
+        print(self.styles)
 
     def save(self, filename):
         odt.convert_from_spans(self._text)
+        style.update_styles(self._xmlfiles['content.xml'], self.styles)
         shared.write_xml_files(self._xmlfiles, self._write_dir)
         shutil.make_archive(filename, 'zip', self._write_dir)
         os.rename('{}.zip'.format(filename), filename),

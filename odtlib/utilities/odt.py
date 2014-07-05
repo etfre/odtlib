@@ -74,3 +74,11 @@ def get_styles(self, content):
 def make_span(text, style_name):
     return shared.makeelement('text', 'span', text,
                               {qn('text', 'style-name'): style_name})
+
+
+
+
+
+
+
+
