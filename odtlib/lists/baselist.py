@@ -4,13 +4,15 @@ from odtlib.namespace import NSMAP, qn
 class ElementList:
     def __init__(self, parent, check_function, default_style=None, data=[]):
         '''
-        Container for Paragraph, Span, and Style wrappers.
+        Container for Paragraph and Span wrappers.
         '''
         self._parent = parent
         self._check_function = check_function
         self._default_style = default_style
         self._list = []
+        self._parent.extend([wrapper._ele for wrapper in data])
         self._list.extend(data)
+
 
     def __len__(self):
         return len(self._list)
@@ -25,8 +27,19 @@ class ElementList:
         return self._list[i]
 
     def __delitem__(self, i):
-        self._parent.remove(self._list[i]._ele)
-        del self._list[i]
+        if isinstance(i, slice):
+            modlist = get_correct_children(self._parent)
+            assert len(modlist) == len(self._list)
+            start, stop, step = get_slice_info(i, modlist)
+            if start < stop:
+                start, stop = stop - 1, start - 1
+                step = -step
+            for pos in range(start, stop, step):
+                self._parent.remove(modlist[pos])
+                del self._list[pos]
+        else:
+            self._parent.remove(self._list[i]._ele)
+            del self._list[i]
 
     def __setitem__(self, i, wrapper):
         wrapper = self._check_function(wrapper, self._default_style)
@@ -101,8 +114,8 @@ def reverse_index(i, wrapper_list):
 def get_shift(i, ele):
     '''
     Iterate over children of <office:text> element to position i.
-    For every child that is a wrappergraph, increment shift by one.
-    We do this to account for non-wrappergraph children of <office:text>
+    For every child that is a paragraph, increment shift by one.
+    We do this to account for non-paragraph children of <office:text>
     while we are doing indexing operations
     '''
     shift = 0
@@ -112,3 +125,19 @@ def get_shift(i, ele):
         if index > i:
             break
     return shift
+
+def get_correct_children(parent):
+    assert parent.tag in [qn('office', 'text'), qn('text', 'p')]
+    if parent.tag == qn('office', 'text'):
+        return parent.findall(qn('text', 'p'))
+    else:
+        return parent.findall(qn('text', 'span'))
+
+def get_slice_info(i, modlist):
+    start = i.start
+    if start is None: start = 0
+    stop = i.stop
+    if stop is None: stop = len(modlist)
+    step = i.step
+    if step is None: step = 1
+    return start, stop, step

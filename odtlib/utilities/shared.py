@@ -84,21 +84,21 @@ def create_replace_dict(para, slices):
         else:
             eledict[span] = [start, start + len(span.text)]
         start += len(span.text)
-        # OpenDocument treats text that matches the style of the containing paragraph
-        # as part of that paragraph's text property, regardless of where it is in
-        # the paragraph. We can find these pieces of text by checking the tail of
-        # each span element. Then clear the span's tail, and place the text in a
-        # placeholder element for use in the replace method
-        if span.tail is not None:
-            if lies_within_match(start, start + len(span.text), slices):
-                prev = list(eledict.keys())[-1]
-                prev.text += span.tail
-                eledict[prev][1] += len(span.tail)
-            else:
-                placeholder = makeelement('text', 'placeholder', span.tail)
-                eledict[placeholder] = [start, start + len(span.tail)]
-            start += len(span.tail)
-            span.tail = None
+        # # OpenDocument treats text that matches the style of the containing paragraph
+        # # as part of that paragraph's text property, regardless of where it is in
+        # # the paragraph. We can find these pieces of text by checking the tail of
+        # # each span element. Then clear the span's tail, and place the text in a
+        # # placeholder element for use in the replace method
+        # if span.tail is not None:
+        #     if lies_within_match(start, start + len(span.text), slices):
+        #         prev = list(eledict.keys())[-1]
+        #         prev.text += span.tail
+        #         eledict[prev][1] += len(span.tail)
+        #     else:
+        #         placeholder = makeelement('text', 'placeholder', span.tail)
+        #         eledict[placeholder] = [start, start + len(span.tail)]
+        #     start += len(span.tail)
+        #     span.tail = None
     return eledict
 
 def merge_placeholders(eledict):

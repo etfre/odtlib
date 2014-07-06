@@ -1,13 +1,16 @@
 import re
-from odtlib.utilities import shared
+from odtlib.utilities import shared, texthelpers
 from odtlib.lists import baselist
 from odtlib.namespace import NSMAP, qn
 
 class Paragraph:
     def __init__(self, text='', style=None):
         self.style = style
-        self._ele = shared.makeelement('text', 'p', text)
-        self.spans = baselist.ElementList(self._ele, check_span_input)
+        self._ele = shared.makeelement('text', 'p')
+        data = []
+        if len(text):
+            data.append(Span(text))
+        self.spans = baselist.ElementList(self._ele, check_span_input, data=data)
 
     @classmethod
     def _from_element(cls, ele):
@@ -48,38 +51,27 @@ class Paragraph:
                         ele.text = shared.insert_substr(match[0] - info[0], replace_value, ele.text)
                         break              
         shared.merge_placeholders(eledict)
+        update_spans(self)
 
     @property
     def text(self):
-        return shared.get_paragraph_text(self._ele)
+        from_wrappers = ''.join([span.text for span in self.spans])
+        from_elements = shared.get_paragraph_text(self._ele)
+        assert from_wrappers == from_elements
+        return from_elements
 
     @text.setter
     def text(self, value):
         # If the new text value is shorter or different than before
         if len(value) < len(self.text) or value[:len(self.text)] != self.text:
-            if self._ele.text is None and len(self.spans):
-                for i, child in enumerate(self._ele.iterchildren()):
-                    if i == 0:
-                        child.text = value
-                        child.tail = None
-                        continue
-                    self._ele.remove(child)
-                self.spans = self.spans[:1]
-            else:
-                shared.remove_children(self._ele)
-                self._ele.text = value
-                self.spans = []
+            del self.spans[:]
+            self.spans.append(value) 
         else:
             extra = value[len(self.text):]
             if len(self._ele.findall(qn('text', 'span'))):
-                e = self._ele.findall(qn('text', 'span'))[-1]
-                if e.tail is not None:
-                    e.tail = ''.join([e.tail, extra])
-                else:
-                    e.text = ''.join([e.text, extra])
+               self.spans[-1].text += extra
             else:
-                self._ele.tail = None
-                self._ele.text = value
+                self.spans.append(extra)
 
 
 class Span:
@@ -115,3 +107,7 @@ def check_span_input(span, style):
     if not isinstance(span, Span):
         raise ValueError('Input to the span list must be strings or Span objects')
     return span
+
+def update_spans(pwrapper):
+    pwrapper.spans._list = []
+    pwrapper.spans.extend([Span._from_element(s) for s in pwrapper._ele.findall(qn('text', 'span'))])
