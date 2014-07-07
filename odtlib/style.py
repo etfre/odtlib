@@ -26,17 +26,25 @@ def build_styles_list(content):
                 stylelist.append(Style._from_element(s))
     return stylelist
 
-def update_styles(content, style_wrappers):
-    automatic = content.find(qn('office', 'automatic-styles'))
-    other = content.find(qn('office', 'styles'))
-    if other is None:
-        other = shared.makeelement('office', 'styles')
-        if automatic is not None:
-            automatic.addnext(other)
-        else:
-            content.insert(0, other)
-    for wrapper in style_wrappers:
-        if automatic is None or wrapper.name in [s.attrib[qn('style', 'name')] for s in automatic]:
-            continue
-        if wrapper.name not in [s.attrib[qn('style', 'name')] for s in other]:
-            other.append(wrapper._ele)
+def update_style(wrapper):
+    if wrapper.style is not None:
+        return
+    # automatic = content.find(qn('office', 'automatic-styles'))
+    # other = content.find(qn('office', 'styles'))
+    # if other is None:
+    #     other = shared.makeelement('office', 'styles')
+    #     if automatic is not None:
+    #         automatic.addnext(other)
+    #     else:
+    #         content.insert(0, other)
+    # for wrapper in style_wrappers:
+    #     if automatic is None or wrapper.name in [s.attrib[qn('style', 'name')] for s in automatic]:
+    #         continue
+    #     if wrapper.name not in [s.attrib[qn('style', 'name')] for s in other]:
+    #         other.append(wrapper._ele)
+
+def get_style_properties(ele):
+    '''
+    Return a dictionary of style properties from a <style:style> element
+    for use in the Style wrapper
+    '''

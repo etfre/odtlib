@@ -6,7 +6,7 @@ from odtlib.namespace import NSMAP, qn
 
 class Paragraph(basetext.BaseText):
     def __init__(self, text='', style=None):
-        super().__init__(text)
+        super().__init__(style)
         self._ele = shared.makeelement('text', 'p')
         data = []
         if text:
@@ -74,7 +74,7 @@ class Paragraph(basetext.BaseText):
 
 class Span(basetext.BaseText):
     def __init__(self, text='', style=None):
-        super().__init__(text)
+        super().__init__(style)
         self._ele = shared.makeelement('text', 'span', text)
 
     @classmethod

@@ -97,7 +97,7 @@ def get_default_paragraph_style_name(doc):
         if (set((qn('style', 'family'), qn('style', 'name'))) <= set(child.attrib) and
         child.attrib[qn('style', 'family')] == 'paragraph'):
             return child.attrib[qn('style', 'name')]
-    return ''
+    return None
 
 def get_paragraph_text(ele):
     textlist = []

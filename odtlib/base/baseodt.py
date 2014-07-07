@@ -18,3 +18,8 @@ class BaseOpenDocumentText:
         self._body = self._xmlfiles['content.xml'].find(qn('office', 'body'))
         self._text = self._body.find(qn('office', 'text'))
         odt.convert_to_spans(self._text)
+
+
+    def _update_styles(self):
+        pass
+
