@@ -1,14 +1,15 @@
 import re
 from odtlib.utilities import shared, texthelpers
+from odtlib.base import basetext
 from odtlib.lists import baselist
 from odtlib.namespace import NSMAP, qn
 
-class Paragraph:
+class Paragraph(basetext.BaseText):
     def __init__(self, text='', style=None):
-        self.style = style
+        super().__init__(text)
         self._ele = shared.makeelement('text', 'p')
         data = []
-        if len(text):
+        if text:
             data.append(Span(text))
         self.spans = baselist.ElementList(self._ele, check_span_input, data=data)
 
@@ -24,7 +25,7 @@ class Paragraph:
 
     def search(self, value):
         '''
-        Search the paragraph for a regular expression.
+        Search the paragraph for a regular expression match.
         '''
         match = re.search(value, self.text)
         if match is not None:
@@ -34,12 +35,12 @@ class Paragraph:
     def replace(self, search_value, replace_value):
         '''
         Replace all instances of a regular expression match in the paragraph with
-        another string. If a match does not lie entirely within a single element,
-        then the new text will be appended only to the first element in the match. 
+        another string. If a match does not lie entirely within a single span,
+        then the new text will be appended only to the first span in the match. 
         '''
         searchre = re.compile(search_value)
         match_slices = [match.span() for match in re.finditer(searchre, self.text)]
-        eledict = shared.create_replace_dict(self._ele, match_slices)
+        eledict = shared.create_replace_dict(self, match_slices)
         # replace in reversed order to avoid dealing with shifted index positions
         for match in reversed(match_slices):
             for ele, info in reversed(list(eledict.items())):
@@ -49,8 +50,7 @@ class Paragraph:
                     else:
                         ele.text = shared.remove_substr(match[0] - info[0], match[1] - info[0], ele.text)
                         ele.text = shared.insert_substr(match[0] - info[0], replace_value, ele.text)
-                        break              
-        update_spans(self)
+                        break
 
     @property
     def text(self):
@@ -67,15 +67,14 @@ class Paragraph:
             self.spans.append(value) 
         else:
             extra = value[len(self.text):]
-            if len(self._ele.findall(qn('text', 'span'))):
+            if self._ele.findall(qn('text', 'span')):
                self.spans[-1].text += extra
             else:
                 self.spans.append(extra)
 
-
-class Span:
+class Span(basetext.BaseText):
     def __init__(self, text='', style=None):
-        self.style = style
+        super().__init__(text)
         self._ele = shared.makeelement('text', 'span', text)
 
     @classmethod
@@ -106,7 +105,3 @@ def check_span_input(span, style):
     if not isinstance(span, Span):
         raise ValueError('Input to the span list must be strings or Span objects')
     return span
-
-def update_spans(pwrapper):
-    pwrapper.spans._list = []
-    pwrapper.spans.extend([Span._from_element(s) for s in pwrapper._ele.findall(qn('text', 'span'))])

@@ -71,19 +71,18 @@ def lies_within_match(start, end, match_slices):
 def create_replace_dict(para, slices):
     eledict = collections.OrderedDict()
     start = 0
-    if para.text is not None:
-        eledict[para] =  [start, len(para.text)]
-        start += len(para.text)
-    span_list = para.findall(qn('text', 'span'))
-    for i, span in enumerate(span_list):
+    spans_to_remove = []
+    for span in para.spans:
         if lies_within_match(start, start + len(span.text), slices):
             prev = list(eledict.keys())[-1]
             prev.text += span.text
             eledict[prev][1] += len(span.text)
-            para.remove(span)
+            spans_to_remove.append(span)
         else:
             eledict[span] = [start, start + len(span.text)]
         start += len(span.text)
+    for span in spans_to_remove:
+        para.spans.remove(span)
     return eledict
 
 def get_tag(namespace):
