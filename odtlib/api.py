@@ -8,7 +8,7 @@ from odtlib.base import baseodt
 from odtlib.utilities import shared, odt
 from odtlib.namespace import NSMAP, qn
 
-class Odt(baseodt.BaseOdt):
+class OpenDocumentText(baseodt.BaseOpenDocumentText):
     def __init__(self, filename=None):
         super().__init__(filename)
         data = [text.Paragraph._from_element(p) for p in self._text.findall(qn('text', 'p'))]

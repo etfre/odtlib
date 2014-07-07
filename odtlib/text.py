@@ -50,7 +50,6 @@ class Paragraph:
                         ele.text = shared.remove_substr(match[0] - info[0], match[1] - info[0], ele.text)
                         ele.text = shared.insert_substr(match[0] - info[0], replace_value, ele.text)
                         break              
-        shared.merge_placeholders(eledict)
         update_spans(self)
 
     @property

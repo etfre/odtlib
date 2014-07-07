@@ -6,6 +6,7 @@ class ElementList:
         '''
         Container for Paragraph and Span wrappers.
         '''
+
         self._parent = parent
         self._check_function = check_function
         self._default_style = default_style
@@ -43,9 +44,8 @@ class ElementList:
 
     def __setitem__(self, i, wrapper):
         wrapper = self._check_function(wrapper, self._default_style)
-        new_i = self._parent.index(self._list[i]._ele)
-        self._parent.remove(self._list[i]._ele)
-        self._parent.insert(new_i, wrapper._ele)
+        # ele = self._list[i]._ele
+        self._parent.replace(self._list[i]._ele, wrapper._ele)
         self._list[i] = wrapper
 
     def append(self, wrapper):

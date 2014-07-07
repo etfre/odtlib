@@ -14,7 +14,7 @@ class TestParagraphs(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.doc = api.Odt(os.path.join(os.path.dirname(__file__), 'files', 'paragraphs.odt'))
+        cls.doc = api.OpenDocumentText(os.path.join(os.path.dirname(__file__), 'files', 'paragraphs.odt'))
 
     def test_paragraph_list_setup(self):
         for p in self.doc.paragraphs:
@@ -45,6 +45,21 @@ class TestParagraphs(unittest.TestCase):
         self.doc.paragraphs.insert(-2, 'Fourth Placeholder Paragraph')
         self.assertEqual('Fourth Placeholder Paragraph', self.doc.paragraphs[-2].text)
 
+    def test_paragraph_list_delete_slice(self):
+        del self.doc.paragraphs[0:2]
+        self.assertEqual('Third Placeholder Paragraph', self.doc.paragraphs[0].text)
+        self.doc.paragraphs.insert(0, 'First Placeholder Paragraph')
+        self.doc.paragraphs.insert(1, 'Second Placeholder Paragraph')
+        del self.doc.paragraphs[4:-1:-2]
+        self.assertEqual('Second Placeholder Paragraph', self.doc.paragraphs[0].text)
+        self.assertEqual('Fourth Placeholder Paragraph', self.doc.paragraphs[1].text)
+        self.assertEqual(len(self.doc.paragraphs), 2)
+        self.doc.paragraphs.insert(0, 'First Placeholder Paragraph')
+        self.doc.paragraphs.insert(2, 'Third Placeholder Paragraph')
+        self.doc.paragraphs.insert(4, 'Fifth Placeholder Paragraph')
+
+
+
     def test_paragraph_list_append(self):
         self.doc.paragraphs.append("I like avocados.")
         p = text.Paragraph('They are delicious.')
@@ -69,13 +84,6 @@ class TestParagraphs(unittest.TestCase):
         self.assertEqual('Second Placeholder Paragraph', p.text)
         self.doc.paragraphs.insert(1, p)
 
-    def test_save(self):
-        savename = 'paragraphssave.odt'
-        self.doc.save(savename)
-        self.assertTrue(os.path.isfile(savename))
-        self.assertTrue(zipfile.is_zipfile(savename))
-        os.remove(savename)
-
     def test_paragraph_list_remove(self):
         self.doc.paragraphs.remove("Second Placeholder Paragraph")
         self.assertEqual('Third Placeholder Paragraph', self.doc.paragraphs[1].text)
@@ -83,6 +91,13 @@ class TestParagraphs(unittest.TestCase):
         missing_string = "Can't find me!"
         with self.assertRaises(ValueError):
             self.doc.paragraphs.remove(missing_string)
+
+    def test_save(self):
+        savename = 'paragraphssave.odt'
+        self.doc.save(savename)
+        self.assertTrue(os.path.isfile(savename))
+        self.assertTrue(zipfile.is_zipfile(savename))
+        os.remove(savename)
 
         
     @classmethod

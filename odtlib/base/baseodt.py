@@ -6,7 +6,7 @@ from odtlib.utilities import shared, odt
 from odtlib import style
 from odtlib.namespace import NSMAP, qn
 
-class BaseOdt:
+class BaseOpenDocumentText:
     def __init__(self, filename):
         if filename is None:
             filename = os.path.join(os.path.dirname(__file__), '..', 'templates', 'new.odt')
