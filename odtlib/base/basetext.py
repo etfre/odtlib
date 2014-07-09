@@ -1,13 +1,14 @@
 import re
-from odtlib.utilities import shared, texthelpers
+from odtlib.utilities import shared, textutilities
 from odtlib.lists import baselist
 from odtlib.namespace import NSMAP, qn
+from odtlib.constants.styleattribs import BASE_STYLE_PROPERTIES
 from odtlib import style
 
 class BaseText:
     def __init__(self, style):
         self._style = style
-        # self._style_properties = get_style_properties(style)
+        self._style_properties = BASE_STYLE_PROPERTIES.copy()
 
     @property
     def style(self):
@@ -30,6 +31,14 @@ class BaseText:
 
     @bold.setter
     def bold(self, value):
-        self._style_properties['bold'] = value
-        self.style = None
+        textutilities.set_property(self, 'bold', value)
+
+    @property
+    def italics(self):
+        return self._style_properties['italics']
+
+    @italics.setter
+    def italics(self, value):
+        textutilities.set_property(self, 'italics', value)
+
     

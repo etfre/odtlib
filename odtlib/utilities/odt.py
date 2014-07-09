@@ -53,25 +53,26 @@ def convert_from_spans(text_parent):
         for attr, value in attributes.items():
             para.set(attr, value)
 
-def get_styles(self, content):
+def get_style_containers(content):
     '''
-    Return a list of style wrappers.
+    Return <office: automatic-styles> and <office: styles> elements. Create
+    these elements and add them as children of <office:document-content> if
+    they do not already exist.
     '''
-    stylelist = []
-    for styles in content.iterchildren():
-        if styles.tag in [qn('office', 'automatic-styles'), qn('office', 'styles')]:
-            # xml parsing is never pretty
-            for s in styles.iterchildren(qn('style', 'style')):
-                for k, v in s.attrib.items():
-                    prefix = shared.get_prefix(k)
-                    tag = shared.get_tag(k)
-                    if tag == 'name': name = v
-                    if tag == 'family': family = v
-                attribs = s.find(qn('style', 'text-properties')).attrib
-                stylelist.append(style.Style(s, name, family, attribs))
-    return stylelist
+    automatic = content.find(qn('office', 'automatic-styles'))
+    other = content.find(qn('office', 'styles'))
+    if automatic is None:
+        automatic = shared.makeelement('office', 'automatic-styles')
+        content.insert(0, automatic)
+    if other is None:
+        other = shared.makeelement('office', 'styles')
+        automatic.addnext(other)
+    return automatic, other
 
 def make_span(text, style_name):
+    '''
+    Given text and a style name, create and return a <text:span> element
+    '''
     return shared.makeelement('text', 'span', text,
                               {qn('text', 'style-name'): style_name})
 

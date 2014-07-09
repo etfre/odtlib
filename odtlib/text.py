@@ -1,23 +1,21 @@
 import re
-from odtlib.utilities import shared, texthelpers
+from odtlib.utilities import shared, textutilities
 from odtlib.base import basetext
 from odtlib.lists import baselist
 from odtlib.namespace import NSMAP, qn
 
 class Paragraph(basetext.BaseText):
     def __init__(self, text='', style=None):
-        super().__init__(style)
         self._ele = shared.makeelement('text', 'p')
         data = []
         if text:
             data.append(Span(text))
         self.spans = baselist.ElementList(self._ele, check_span_input, data=data)
+        super().__init__(style)
 
     @classmethod
     def _from_element(cls, ele):
-        para = cls()
-        para.text = shared.get_paragraph_text(ele)
-        para.style = shared.get_style_name(ele)
+        para = cls(shared.get_paragraph_text(ele), shared.get_style_name(ele))
         para._ele = ele
         data = [Span._from_element(s) for s in ele.findall(qn('text', 'span'))]
         para.spans = baselist.ElementList(ele, check_span_input, data=data)
