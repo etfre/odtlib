@@ -15,7 +15,7 @@ class Paragraph(basetext.BaseText):
 
     @classmethod
     def _from_element(cls, ele):
-        para = cls(shared.get_paragraph_text(ele), shared.get_style_name(ele))
+        para = cls(shared.get_paragraph_text(ele))
         para._ele = ele
         data = [Span._from_element(s) for s in ele.findall(qn('text', 'span'))]
         para.spans = baselist.ElementList(ele, check_span_input, data=data)
@@ -77,7 +77,7 @@ class Span(basetext.BaseText):
 
     @classmethod
     def _from_element(cls, ele):
-        span = cls(ele.text, shared.get_style_name(ele))
+        span = cls(ele.text)
         span._ele = ele
         return span
 

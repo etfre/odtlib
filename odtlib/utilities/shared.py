@@ -118,3 +118,10 @@ def get_style_name(element):
     assert element.tag in [qn('text', 'p'), qn('text', 'span')]
     for attribute, value in element.attrib.items():
         if attribute == qn('text', 'style-name'): return value
+
+def get_or_make_child(ele, prefix, tag):
+    child = ele.find(qn(prefix, tag))
+    if child is None:
+        child = makeelement(prefix, tag)
+        ele.append(child) 
+    return child

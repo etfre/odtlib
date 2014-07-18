@@ -76,6 +76,12 @@ def make_span(text, style_name):
     return shared.makeelement('text', 'span', text,
                               {qn('text', 'style-name'): style_name})
 
+def get_default_styles(root):
+    wrappers = {}
+    for s in root.find(qn('office', 'styles')).iterchildren(qn('style', 'style')):
+        wrapper = style.Style._from_element(s)
+        wrappers[wrapper.name] = wrapper
+    return wrappers
 
 
 

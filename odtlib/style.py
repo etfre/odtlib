@@ -1,5 +1,5 @@
 from odtlib.utilities import shared
-from odtlib.constants.styleattribs import STYLE_ATTRIBUTES, BASE_STYLE_PROPERTIES
+from odtlib.constants.styleattribs import STYLE_ATTRIBUTES, BASE_STYLE_PROPERTIES, PROPERTY_INPUT_MAP
 
 from odtlib.namespace import NSMAP, qn
 from copy import deepcopy
@@ -7,7 +7,8 @@ from copy import deepcopy
 class Style:
     def __init__(self, name, family):
         self._ele = shared.makeelement('style', 'style')
-        self._ele.append(shared.makeelement('style', 'text-properties'))
+        self._props_dict = {'text': shared.makeelement('style', 'text-properties')}
+        self._ele.append(self._props_dict['text'])
         self.name = name
         self.family = family
         self._style_properties = BASE_STYLE_PROPERTIES.copy()
@@ -18,7 +19,8 @@ class Style:
         family = ele.attrib[qn('style', 'family')]
         style = cls(name, family)
         style._ele = ele
-        style._style_properties = set_style_properties(style._ele.find(qn('style', 'text-properties')))
+        style._props_dict = {'text': style._ele.find(qn('style', 'text-properties'))}
+        style._style_properties = initiate_style_properties(style._props_dict, style._style_properties)
         return style
 
     @property
@@ -27,7 +29,7 @@ class Style:
 
     @bold.setter
     def bold(self, value):
-        textutilities.set_property(self, 'bold', value)
+        self._set_property(value, 'bold')
 
     @property
     def italic(self):
@@ -35,59 +37,67 @@ class Style:
 
     @italic.setter
     def italic(self, value):
-        textutilities.set_property(self, 'italic', value)
+        self._set_property(value, 'italic')
 
-def set_style_properties(text_properties):
-    sprops = {}
-    sprops['bold'] = set_bool_property('bold', text_properties)
-    sprops['italic'] = set_bool_property('italic', text_properties)
+    @property
+    def color(self):
+        return self._style_properties['color']
+
+    @color.setter
+    def color(self, value):
+        self._set_property(value, 'color')
+
+    def _set_property(self, value, prop):
+        prop_dict = PROPERTY_INPUT_MAP[prop]
+        for attr in STYLE_ATTRIBUTES[prop]:
+            if value is None:
+                if attr in self._props_dict['text'].attrib:
+                    del self._props_dict['text'].attrib[attr]
+                continue
+            # If prop_dict is empty, we simply set every attribute to value
+            # Used for strings like RGB colors
+            if not prop_dict:
+                if not isinstance(value, str):
+                    raise ValueError("{} property must be a string or None".format(prop))
+                self._props_dict['text'].set(attr, value)
+                continue
+            try:
+                self._props_dict['text'].set(attr, prop_dict[value])
+            except KeyError:
+                raise ValueError("Invalid value {} for {} property".format(value, prop))
+        self._style_properties[prop] = value
+
+def initiate_style_properties(props_dict, sprops):
+    if props_dict['text'] is not None:
+        if matches_attributes('bold', props_dict['text'], STYLE_ATTRIBUTES['bold']):
+            sprops['bold'] = True
+        if matches_attributes('italic', props_dict['text'], STYLE_ATTRIBUTES['italic']):
+            sprops['italic'] = True
+        if props_dict['text'].get(qn('fo', 'color')) is not None:
+            sprops['color'] = props_dict['text'].get(qn('fo', 'color'))
     return sprops
 
-def set_bool_property(prop, text_properties):
+def matches_attributes(value, element, attributes):
     '''
-    Based on the attributes of a <style: text-properties> element,
-    set the 
+    Given an lxml element, a value, and a list of properties,
+    return whether all of the given element attributes match the value argument
     '''
-    for attribute in STYLE_ATTRIBUTES[prop]:
-        if text_properties.get(attribute) != prop:
+    for attribute in attributes:
+        if attribute not in element.attrib or element.get(attribute) != value:
             return False
     return True
 
-
-
-def build_styles_list(automatic, office):
+def build_styles_dict(automatic, office):
     '''
     Return a list of style wrappers. Create an <office: styles>
     element if one does not already exist.
     '''
-    stylelist = []
+    styledict = {}
     for styles in [automatic, office]:
         for s in styles.iterchildren(qn('style', 'style')):
-            stylelist.append(Style._from_element(s))
-    return stylelist
-
-def update_style(wrapper, automatic_styles, office_styles):
-    '''
-    From the properties of the wrapper object, build
-    a <style:style> element. If that style's attributes
-    do not match those of another style in <office:automatic-styles>
-    or <office:styles>, append the style to <office:styles>
-    '''
-    styles = deepcopy(list(automatic_styles) + list(office_styles))
-    family = get_family(wrapper)
-    name = get_name(family, styles)
-    style = shared.makeelement('style', 'style', attributes=
-        {qn('style', 'name'): name, qn('style', 'family'): family})
-    properties = shared.makeelement('style', 'text-properties')
-    style.append(properties)
-    set_properties(wrapper, properties)
-    for s in styles:
-        if (s.get(qn('style', 'family')) == family and
-        s.find(qn('style', 'text-properties')).attrib == properties):
-            wrapper.style = s.get(qn('style', 'name'))
-            return
-    wrapper.style = name
-    office_styles.append(style)
+            wrapper = Style._from_element(s)
+            styledict[wrapper.name] = wrapper
+    return styledict
 
 def get_family(wrapper):
     if wrapper._ele.tag == qn('text', 'p'):
@@ -101,25 +111,12 @@ def get_name(family, styles):
         letter = family[0].upper()
     num = 1
     name = '{}{}'.format(letter, num)
-    while name in [style.get(qn('style', 'name')) for style in styles]:
+    while name in [s.get(qn('style', 'name')) for s in styles]:
         num += 1
         name = '{}{}'.format(letter, num)
     return name
 
-# def set_properties(wrapper, properties):
-#     set_bool_property(wrapper.bold, 'bold', properties, styleattribs.BOLD_ATTRIBUTES)
-    # if wrapper.bold is True:
-    #     for prop in styleattribs.BOLD_ATTRIBUTES:
-    #         properties.set(prop, 'bold')
-    # else:
-    #     for prop in styleattribs.BOLD_ATTRIBUTES:
-    #         properties.set(prop, 'normal')
-
-# def set_bool_property(wrapper_prop, true_value, properties, attr_constants, false_value='normal'):
-#     for prop in attr_constants:
-#         if wrapper_prop is True:
-#             properties.set(prop, true_value)
-#         else:
-#             properties.set(prop, false_value)
-
-
+def make_empty_style():
+    s = shared.makeelement('style', 'style')
+    s.append(shared.makeelement('style', 'text-properties'))
+    return s

@@ -14,14 +14,14 @@ class OpenDocumentText(baseodt.BaseOpenDocumentText):
         data = [text.Paragraph._from_element(p) for p in self._text.findall(qn('text', 'p'))]
         self.paragraphs = baselist.ElementList(self._text,
                                                text.check_paragraph_input,
-                                               self._default_paragraph_style_name,
+                                               shared.get_default_paragraph_style_name(self._content),
                                                data=data)
-        self.styles = style.build_styles_list(self._automatic_styles, self._office_styles)
+        self.styles = style.build_styles_dict(self._automatic_styles, self._office_styles)
         for paragraph in self.paragraphs:
-            textutilities.assign_paragraph_properties(paragraph, self.styles)
+            textutilities.attach_style_wrapper(paragraph, self.styles)
 
     def save(self, filename):
-        # self._update_styles()
+        self._update_styles()
         odt.convert_from_spans(self._text)
         shared.write_xml_files(self._xmlfiles, self._write_dir)
         shutil.make_archive(filename, 'zip', self._write_dir)
