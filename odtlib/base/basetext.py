@@ -115,4 +115,5 @@ class BaseText:
             office.append(self._style_copy)
         else:
             self._ele.set(qn('text', 'style-name'), self.style.name)
+            office.append(self.style._ele)
 

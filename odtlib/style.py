@@ -11,7 +11,7 @@ class Style:
         self._props_dict = {'text': shared.makeelement('style', 'text-properties')}
         self._ele.append(self._props_dict['text'])
         self._ele.set(qn('style', 'name'), name)
-        self.family = family
+        self._ele.set(qn('style', 'family'), family)
         self._style_properties = BASE_STYLE_PROPERTIES.copy()
 
     @classmethod
@@ -31,6 +31,14 @@ class Style:
     @name.setter
     def name(self, value):
         self._ele.set(qn('style', 'name'), value)
+
+    @property
+    def family(self):
+        return self._ele.get(qn('style', 'family'))
+
+    @family.setter
+    def family(self, value):
+        self._ele.set(qn('style', 'family'), value)
 
     @property
     def bold(self):
