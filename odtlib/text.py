@@ -83,6 +83,8 @@ class Span(basetext.BaseText):
 
     @property
     def text(self):
+        if self._ele.text is None:
+            return ''
         return self._ele.text
 
     @text.setter
@@ -90,16 +92,16 @@ class Span(basetext.BaseText):
         self._ele.text = value
 
 
-def check_paragraph_input(para, style):
+def check_paragraph_input(para):
     if isinstance(para, str):
-        return Paragraph(para, style)
+        return Paragraph(para)
     if not isinstance(para, Paragraph):
         raise ValueError('Input to the paragraph list must be strings or Paragraph objects')
     return para
 
-def check_span_input(span, style):
+def check_span_input(span):
     if isinstance(span, str):
-        return Span(span, style)
+        return Span(span)
     if not isinstance(span, Span):
         raise ValueError('Input to the span list must be strings or Span objects')
     return span

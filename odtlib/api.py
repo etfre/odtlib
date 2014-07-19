@@ -14,7 +14,6 @@ class OpenDocumentText(baseodt.BaseOpenDocumentText):
         data = [text.Paragraph._from_element(p) for p in self._text.findall(qn('text', 'p'))]
         self.paragraphs = baselist.ElementList(self._text,
                                                text.check_paragraph_input,
-                                               shared.get_default_paragraph_style_name(self._content),
                                                data=data)
         self.styles = style.build_styles_dict(self._automatic_styles, self._office_styles)
         for paragraph in self.paragraphs:

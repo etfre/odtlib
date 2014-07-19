@@ -22,12 +22,10 @@ class BaseOpenDocumentText:
         odt.convert_to_spans(self._text)
 
     def _update_styles(self):
-        pass
-        # for para in self.paragraphs:
-        #     para_style = para._get_or_build_style(self.styles)
-            # style.update_style(para, self._automatic_styles, self._office_styles)
-            # for span in para.spans:
-            #     style.update_style(span, self._automatic_styles, self._office_styles)
+        for para in self.paragraphs:
+            para._attach_style(self._automatic_styles, self._office_styles)
+            for span in para.spans:
+                span._attach_style(self._automatic_styles, self._office_styles)
 
     def __enter__(self):
         pass

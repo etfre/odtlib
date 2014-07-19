@@ -8,6 +8,7 @@ from odtlib import style
 
 class BaseText:
     def __init__(self, s):
+        assert s is None or isinstance(s, style.Style)
         self._style = s
         # _style_copy allows us to track "stylelike" xml properties at a lower
         # level even if a style is not currently attached. When self.style is a wrapper,
@@ -86,60 +87,32 @@ class BaseText:
                 tprops.set(attr, prop_dict[value])
             except KeyError:
                 raise ValueError("Invalid value {} for {} property".format(value, prop))
-
-    # @bold.setter
-    # def bold(self, value):
-    #     self._set_property('bold', value)
-
-    # @property
-    # def italic(self):
-    #     return self._get_property('italic')
-
-    # @italic.setter
-    # def italic(self, value):
-    #     self._set_property('italic', value)
-
-    # @property
-    # def color(self):
-    #     return self._get_property('color')
-
-    # @color.setter
-    # def color(self, value):
-    #     self._set_property('color', value)
-
-    # def _get_property(self, prop):
-    #     if self.style is None:
-    #         check_prop = self._style_properties[prop]
-    #     else:
-    #         check_prop = self.style._style_properties[prop]
-    #     if self._ele.tag == qn('text', 'p') and self.spans:
-    #         for span in self.spans:
-    #             if (span.style._style_properties[prop] is not None and
-    #                 span.style._style_properties[prop] != check_prop):
-    #                 return None
-    #     return check_prop
+        if self.style is not None:
+            if self.style._style_properties[prop] != value:
+                self.style = None
+                if self._ele.tag == qn('text', 'p'):
+                    [span._set_property(value, prop) for span in self.spans]
 
 
-    # def _set_property(self, prop, value):
-    #     self._style_properties[prop] = value
-    #     if self.style is not None and self.style._style_properties != value:
-    #         self.style = None
-    #     if self._ele.tag == qn('text', 'p'):
-    #         for span in self.spans:
-    #             setattr(span, prop, value)
+    def _attach_style(self, automatic, office):
+        '''
+        Return this text wrapper's style wrapper or build one based on
+        this text wrapper's properties. Only called during
+        OpenDocumentText.save()
+        '''
+        if self.style is None:
+            combined = copy.deepcopy(list(automatic) + list(office))
+            family = style.get_family(self)
+            name = style.get_name(family, combined)
+            self._style_copy.set(qn('style', 'name'), name)
+            self._style_copy.set(qn('style', 'family'), family)
+            for s in combined:
+                if (shared.compare_elements(self._style_copy, s, qn('style', 'name')) and
+                    s.get(qn('style', 'name')) is not None):
+                    self._ele.set(qn('text', 'style-name'), s.get(qn('style', 'name')))
+                    return
+            self._ele.set(qn('text', 'style-name'), name)       
+            office.append(self._style_copy)
+        else:
+            self._ele.set(qn('text', 'style-name'), self.style.name)
 
-    # def _get_or_build_style(self, styles):
-    #     '''
-    #     Return this text wrapper's style wrapper or build one based on
-    #     this text wrapper's properties. Only called during
-    #     OpenDocumentText.save()
-    #     '''
-    #     if self.style is None:
-    #         family = style.get_family(self)
-    #         name = style.get_name(family, styles)
-    #         s = Style(name, family)
-    #         s.bold = self.bold
-    #         s.italic = self.italic
-    #         s.color = self.color
-    #         s = self.style
-    #     return self.style

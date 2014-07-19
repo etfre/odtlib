@@ -6,10 +6,11 @@ from copy import deepcopy
 
 class Style:
     def __init__(self, name, family):
+        assert isinstance(name, str)
         self._ele = shared.makeelement('style', 'style')
         self._props_dict = {'text': shared.makeelement('style', 'text-properties')}
         self._ele.append(self._props_dict['text'])
-        self.name = name
+        self._ele.set(qn('style', 'name'), name)
         self.family = family
         self._style_properties = BASE_STYLE_PROPERTIES.copy()
 
@@ -22,6 +23,14 @@ class Style:
         style._props_dict = {'text': style._ele.find(qn('style', 'text-properties'))}
         style._style_properties = initiate_style_properties(style._props_dict, style._style_properties)
         return style
+
+    @property
+    def name(self):
+        return self._ele.get(qn('style', 'name'))
+
+    @name.setter
+    def name(self, value):
+        self._ele.set(qn('style', 'name'), value)
 
     @property
     def bold(self):
