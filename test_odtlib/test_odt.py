@@ -13,7 +13,7 @@ class TestOdtlib(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.template_doc = api.OpenDocumentText()
-        cls.full_doc = api.OpenDocumentText(os.path.join(os.path.dirname(__file__), '..', 'odtlib', 'templates', 'full.odt'))
+        cls.full_doc = api.OpenDocumentText(os.path.join(os.path.dirname(__file__), 'files', 'full.odt'))
 
     def test_template_save(self):
         savename = 'templatesave.odt'

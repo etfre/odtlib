@@ -1,23 +1,21 @@
 import re
-from odtlib.utilities import shared, texthelpers
+from odtlib.utilities import shared, textutilities
 from odtlib.base import basetext
 from odtlib.lists import baselist
 from odtlib.namespace import NSMAP, qn
 
 class Paragraph(basetext.BaseText):
     def __init__(self, text='', style=None):
-        super().__init__(style)
         self._ele = shared.makeelement('text', 'p')
         data = []
         if text:
             data.append(Span(text))
         self.spans = baselist.ElementList(self._ele, check_span_input, data=data)
+        super().__init__(style)
 
     @classmethod
     def _from_element(cls, ele):
-        para = cls()
-        para.text = shared.get_paragraph_text(ele)
-        para.style = shared.get_style_name(ele)
+        para = cls(shared.get_paragraph_text(ele))
         para._ele = ele
         data = [Span._from_element(s) for s in ele.findall(qn('text', 'span'))]
         para.spans = baselist.ElementList(ele, check_span_input, data=data)
@@ -79,12 +77,14 @@ class Span(basetext.BaseText):
 
     @classmethod
     def _from_element(cls, ele):
-        span = cls(ele.text, shared.get_style_name(ele))
+        span = cls(ele.text)
         span._ele = ele
         return span
 
     @property
     def text(self):
+        if self._ele.text is None:
+            return ''
         return self._ele.text
 
     @text.setter
@@ -92,16 +92,16 @@ class Span(basetext.BaseText):
         self._ele.text = value
 
 
-def check_paragraph_input(para, style):
+def check_paragraph_input(para):
     if isinstance(para, str):
-        return Paragraph(para, style)
+        return Paragraph(para)
     if not isinstance(para, Paragraph):
         raise ValueError('Input to the paragraph list must be strings or Paragraph objects')
     return para
 
-def check_span_input(span, style):
+def check_span_input(span):
     if isinstance(span, str):
-        return Span(span, style)
+        return Span(span)
     if not isinstance(span, Span):
         raise ValueError('Input to the span list must be strings or Span objects')
     return span

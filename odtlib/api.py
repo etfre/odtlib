@@ -5,7 +5,7 @@ import re
 from odtlib import text, style
 from odtlib.lists import baselist
 from odtlib.base import baseodt
-from odtlib.utilities import shared, odt
+from odtlib.utilities import shared, odt, textutilities
 from odtlib.namespace import NSMAP, qn
 
 class OpenDocumentText(baseodt.BaseOpenDocumentText):
@@ -14,16 +14,14 @@ class OpenDocumentText(baseodt.BaseOpenDocumentText):
         data = [text.Paragraph._from_element(p) for p in self._text.findall(qn('text', 'p'))]
         self.paragraphs = baselist.ElementList(self._text,
                                                text.check_paragraph_input,
-                                               self._default_paragraph_style_name,
                                                data=data)
-        self.styles = style.build_styles_list(self._xmlfiles['content.xml'])
+        self.styles = style.build_styles_dict(self._automatic_styles, self._office_styles)
+        for paragraph in self.paragraphs:
+            textutilities.attach_style_wrapper(paragraph, self.styles)
 
     def save(self, filename):
+        self._update_styles()
         odt.convert_from_spans(self._text)
-        for para in self.paragraphs:
-            style.update_style(para)
-            for span in para.spans:
-                style.update_style(span)
         shared.write_xml_files(self._xmlfiles, self._write_dir)
         shutil.make_archive(filename, 'zip', self._write_dir)
         os.rename('{}.zip'.format(filename), filename),

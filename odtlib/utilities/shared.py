@@ -2,6 +2,7 @@ import zipfile
 import os
 import re
 import collections
+import copy
 from lxml import etree
 from odtlib.namespace import NSMAP, qn
 
@@ -91,14 +92,6 @@ def get_tag(namespace):
 def get_prefix(namespace):
     return re.match(r'{([^}]*)}', namespace).group(1)
 
-def get_default_paragraph_style_name(doc):
-    auto = doc.find(qn('office', 'automatic-styles'))
-    for child in auto.iterchildren(qn('style', 'style')):
-        if (set((qn('style', 'family'), qn('style', 'name'))) <= set(child.attrib) and
-        child.attrib[qn('style', 'family')] == 'paragraph'):
-            return child.attrib[qn('style', 'name')]
-    return None
-
 def get_paragraph_text(ele):
     textlist = []
     if ele.text is not None:
@@ -118,3 +111,36 @@ def get_style_name(element):
     assert element.tag in [qn('text', 'p'), qn('text', 'span')]
     for attribute, value in element.attrib.items():
         if attribute == qn('text', 'style-name'): return value
+
+def get_or_make_child(ele, prefix, tag):
+    child = ele.find(qn(prefix, tag))
+    if child is None:
+        child = makeelement(prefix, tag)
+        ele.append(child) 
+    return child
+
+def compare_elements(a, b, attributes_to_exclude=[]):
+    if not isinstance(attributes_to_exclude, list):
+        attributes_to_exclude = [attributes_to_exclude]
+    a_copy = copy.deepcopy(a)
+    b_copy = copy.deepcopy(b)
+    for attr in attributes_to_exclude:
+        if attr in a_copy.attrib:
+            del a_copy.attrib[attr]
+        if attr in b_copy.attrib:
+            del b_copy.attrib[attr]
+    if ([a_copy.tag, a_copy.tail, a_copy.text, a_copy.attrib, len(list(a_copy))] !=
+        [b_copy.tag, b_copy.tail, b_copy.text, b_copy.attrib, len(list(b_copy))]):
+        return False
+    equivalent_children = []
+    for i, a_child in enumerate(a.iterchildren(), start=1):
+        for b_child in b.iterchildren():
+            if (b_child not in equivalent_children and
+                compare_elements(a_child, b_child, attributes_to_exclude)):
+                equivalent_children.append(b_child)
+                break
+    if len(equivalent_children) != len(list(a_copy)):
+        return False
+    return True
+
+

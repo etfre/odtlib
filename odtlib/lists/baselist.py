@@ -2,18 +2,15 @@ from odtlib.utilities import shared
 from odtlib.namespace import NSMAP, qn
 
 class ElementList:
-    def __init__(self, parent, check_function, default_style=None, data=[]):
+    def __init__(self, parent, check_function, data=[]):
         '''
         Container for Paragraph and Span wrappers.
         '''
-
         self._parent = parent
         self._check_function = check_function
-        self._default_style = default_style
         self._list = []
         self._parent.extend([wrapper._ele for wrapper in data])
         self._list.extend(data)
-
 
     def __len__(self):
         return len(self._list)
@@ -43,24 +40,24 @@ class ElementList:
             del self._list[i]
 
     def __setitem__(self, i, wrapper):
-        wrapper = self._check_function(wrapper, self._default_style)
+        wrapper = self._check_function(wrapper)
         # ele = self._list[i]._ele
         self._parent.replace(self._list[i]._ele, wrapper._ele)
         self._list[i] = wrapper
 
     def append(self, wrapper):
-        wrapper = self._check_function(wrapper, self._default_style)
+        wrapper = self._check_function(wrapper)
         self._list.append(wrapper)
         self._parent.append(wrapper._ele)
 
     def extend(self, wrapperlist):
         for wrapper in wrapperlist:
-            wrapper = self._check_function(wrapper, self._default_style)
+            wrapper = self._check_function(wrapper)
             self._list.append(wrapper)
             self._parent.append(wrapper._ele)
 
     def insert(self, i, wrapper):
-        wrapper = self._check_function(wrapper, self._default_style)
+        wrapper = self._check_function(wrapper)
         i = reverse_index(i, self._list)
         shift = get_shift(i, self._parent)
         self._parent.insert(i+shift, wrapper._ele)
@@ -71,7 +68,7 @@ class ElementList:
         return self._list.pop(i)
 
     def remove(self, wrapper):
-        self._check_function(wrapper, self._default_style)
+        self._check_function(wrapper)
         if isinstance(wrapper, str):
             for pwrapper in self._list:
                 if pwrapper.text == wrapper:
@@ -82,25 +79,6 @@ class ElementList:
         else:
             self._list.remove(wrapper)
             self._parent.remove(wrapper._ele)
-
-def check_paragraph_input(para, style):
-    if isinstance(para, str):
-        return text.Paragraph(para, style)
-    if not isinstance(para, text.Paragraph):
-        raise ValueError('Input to the paragraph list must be strings or Paragraph objects')
-    return para
-
-def check_span_input(span, style):
-    if isinstance(span, str):
-        return text.Span(span, style)
-    if not isinstance(span, text.Span):
-        raise ValueError('Input to the span list must be strings or Span objects')
-    return span
-
-def check_style_input(style, default):
-    assert default is None
-    if not isinstance(span, text.Style):
-        raise ValueError('Input to the style list must be Style objects')
 
 def reverse_index(i, wrapper_list):
     '''
