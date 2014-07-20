@@ -13,7 +13,7 @@ class BaseText:
         # _style_copy allows us to track "stylelike" xml properties at a lower
         # level even if a style is not currently attached. When self.style is a wrapper,
         # it points to the wrapper's _ele element. When self.style becomes None, it
-        # makes a copy of the _ele element 
+        # becomes a copy of the _ele element 
         self._style_copy = style.make_empty_style()
 
     @property
@@ -41,16 +41,22 @@ class BaseText:
         self._set_property(value, 'bold')
 
     @property
+    def italic(self):
+        return self._get_property('italic')
+
+    @italic.setter
+    def italic(self, value):
+        self._set_property(value, 'italic')
+
+    @property
     def color(self):
-        return self._get_property('color', change_value=False)
+        return self._get_property('color')
 
     @color.setter
     def color(self, value):
         self._set_property(value, 'color')
 
-
-
-    def _get_property(self, prop, change_value=True):
+    def _get_property(self, prop):
         tprops = self._style_copy.find(qn('style', 'text-properties'))
         for i, attrconstant in enumerate(STYLE_ATTRIBUTES[prop]):
             if i == 0:
@@ -59,14 +65,13 @@ class BaseText:
                 return None
             if tprops.get(attrconstant) != first_value:
                 return None
-        if not change_value:
-            return first_value
+        # if not change_value:
+        #     return first_value
         # Inverse dict lookup because we're sharing this constant dict with the Style class
         for key in PROPERTY_INPUT_MAP[prop]:
             if PROPERTY_INPUT_MAP[prop][key] == first_value:
                 return key
-        assert(False)
-
+        return first_value
 
     def _set_property(self, value, prop):
         prop_dict = PROPERTY_INPUT_MAP[prop]
@@ -88,7 +93,7 @@ class BaseText:
             except KeyError:
                 raise ValueError("Invalid value {} for {} property".format(value, prop))
         if self.style is not None:
-            if self.style._style_properties[prop] != value:
+            if self._get_property(prop) != value:
                 self.style = None
                 if self._ele.tag == qn('text', 'p'):
                     [span._set_property(value, prop) for span in self.spans]

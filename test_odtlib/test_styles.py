@@ -26,7 +26,7 @@ class TestStyles(unittest.TestCase):
     def test_default_style(self):
         s = style.Style('style name', 'paragraph')
         self.assertEqual(s.bold, None)
-        # self.assertEqual(s.italic, None)
+        self.assertEqual(s.italic, None)
         self.assertEqual(s.color, None)
 
     @classmethod
@@ -65,6 +65,7 @@ class TestStyles(unittest.TestCase):
         assert cls.testdoc.paragraphs[1].spans[2].color == '#56789a'
         assert cls.testdoc.paragraphs[1].spans[2].bold == False
         cls.testdoc.save('testdoc.odt')
+        os.remove(savename)
         os.remove('testdoc.odt')
 
 def get_and_set_testing():

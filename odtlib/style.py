@@ -8,11 +8,9 @@ class Style:
     def __init__(self, name, family):
         assert isinstance(name, str)
         self._ele = shared.makeelement('style', 'style')
-        self._props_dict = {'text': shared.makeelement('style', 'text-properties')}
-        self._ele.append(self._props_dict['text'])
+        self._ele.append(shared.makeelement('style', 'text-properties'))
         self._ele.set(qn('style', 'name'), name)
         self._ele.set(qn('style', 'family'), family)
-        self._style_properties = BASE_STYLE_PROPERTIES.copy()
 
     @classmethod
     def _from_element(cls, ele):
@@ -20,8 +18,6 @@ class Style:
         family = ele.attrib[qn('style', 'family')]
         style = cls(name, family)
         style._ele = ele
-        style._props_dict = {'text': style._ele.find(qn('style', 'text-properties'))}
-        style._style_properties = initiate_style_properties(style._props_dict, style._style_properties)
         return style
 
     @property
@@ -42,7 +38,7 @@ class Style:
 
     @property
     def bold(self):
-        return self._style_properties['bold']
+        return self._get_property('bold')
 
     @bold.setter
     def bold(self, value):
@@ -50,7 +46,7 @@ class Style:
 
     @property
     def italic(self):
-        return self._style_properties['italic']
+        return self._get_property('italic')
 
     @italic.setter
     def italic(self, value):
@@ -58,41 +54,48 @@ class Style:
 
     @property
     def color(self):
-        return self._style_properties['color']
+        return self._get_property('color')
 
     @color.setter
     def color(self, value):
         self._set_property(value, 'color')
 
+
+
+    def _get_property(self, prop):
+        tprops = self._ele.find(qn('style', 'text-properties'))
+        for i, attrconstant in enumerate(STYLE_ATTRIBUTES[prop]):
+            if i == 0:
+                first_value = tprops.get(attrconstant)
+            if tprops.get(attrconstant) is None:
+                return None
+            if tprops.get(attrconstant) != first_value:
+                return None
+        # Inverse dict lookup because we're sharing this constant dict with the Style class
+        for key in PROPERTY_INPUT_MAP[prop]:
+            if PROPERTY_INPUT_MAP[prop][key] == first_value:
+                return key
+        return first_value
+
     def _set_property(self, value, prop):
         prop_dict = PROPERTY_INPUT_MAP[prop]
+        tprops = self._ele.find(qn('style', 'text-properties'))
         for attr in STYLE_ATTRIBUTES[prop]:
             if value is None:
-                if attr in self._props_dict['text'].attrib:
-                    del self._props_dict['text'].attrib[attr]
+                if attr in tprops.attrib:
+                    del tprops.attrib[attr]
                 continue
             # If prop_dict is empty, we simply set every attribute to value
             # Used for strings like RGB colors
             if not prop_dict:
                 if not isinstance(value, str):
                     raise ValueError("{} property must be a string or None".format(prop))
-                self._props_dict['text'].set(attr, value)
+                tprops.set(attr, value)
                 continue
             try:
-                self._props_dict['text'].set(attr, prop_dict[value])
+                tprops.set(attr, prop_dict[value])
             except KeyError:
                 raise ValueError("Invalid value {} for {} property".format(value, prop))
-        self._style_properties[prop] = value
-
-def initiate_style_properties(props_dict, sprops):
-    if props_dict['text'] is not None:
-        if matches_attributes('bold', props_dict['text'], STYLE_ATTRIBUTES['bold']):
-            sprops['bold'] = True
-        if matches_attributes('italic', props_dict['text'], STYLE_ATTRIBUTES['italic']):
-            sprops['italic'] = True
-        if props_dict['text'].get(qn('fo', 'color')) is not None:
-            sprops['color'] = props_dict['text'].get(qn('fo', 'color'))
-    return sprops
 
 def matches_attributes(value, element, attributes):
     '''
