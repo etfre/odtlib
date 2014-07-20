@@ -2,7 +2,7 @@ from odtlib.utilities import shared
 from odtlib.namespace import NSMAP, qn
 
 class ElementList:
-    def __init__(self, parent, check_function, data=[]):
+    def __init__(self, parent, check_function, data=None):
         '''
         Container for Paragraph and Span wrappers.
         '''
@@ -10,7 +10,8 @@ class ElementList:
         self._check_function = check_function
         self._list = []
         self._parent.extend([wrapper._ele for wrapper in data])
-        self._list.extend(data)
+        if data is not None:
+            self._list.extend(data)
 
     def __len__(self):
         return len(self._list)
@@ -41,7 +42,6 @@ class ElementList:
 
     def __setitem__(self, i, wrapper):
         wrapper = self._check_function(wrapper)
-        # ele = self._list[i]._ele
         self._parent.replace(self._list[i]._ele, wrapper._ele)
         self._list[i] = wrapper
 
@@ -61,7 +61,7 @@ class ElementList:
         i = reverse_index(i, self._list)
         shift = get_shift(i, self._parent)
         self._parent.insert(i+shift, wrapper._ele)
-        self._list.insert(i, wrapper)   
+        self._list.insert(i, wrapper)
 
     def pop(self, i=-1):
         self._parent.remove(self._list[i]._ele)

@@ -5,7 +5,28 @@ from odtlib.lists import baselist
 from odtlib.namespace import NSMAP, qn
 
 class Paragraph(basetext.BaseText):
+    '''
+    Paragraph wrapper for <text: p> element. Note that all of the
+    style-based properties of this class, such as bold or italic,
+    can be set to None, in which case they will defer to the default
+    document style for that property.
+
+    Attributes:
+        spans: List of span wrappers representing the <text: span>
+            elements that lie within this paragraph.
+        text: String containing the entirety of the paragraph's text.
+        bold: Bool indicating whether or not this paragraph's text
+            displays as bold.
+
+    '''
+
     def __init__(self, text='', style=None):
+        '''
+        Constructor method for the Paragraph wrapper.
+
+        Args:
+            text: String that contains 
+        '''
         self._ele = shared.makeelement('text', 'p')
         data = []
         if text:
@@ -15,6 +36,18 @@ class Paragraph(basetext.BaseText):
 
     @classmethod
     def _from_element(cls, ele):
+        '''
+        Create a paragraph wrapper for a <text: p> element. Used
+        internally. Do **not** call this method as part of the odtlib
+        API.
+
+        Args:
+            ele: etree <text: p> element off of which the
+                wrapper is based
+        Returns:
+            Paragraph wrapper for <text: p> element
+        '''
+        assert ele.tag == qn('text', 'p')
         para = cls(shared.get_paragraph_text(ele))
         para._ele = ele
         data = [Span._from_element(s) for s in ele.findall(qn('text', 'span'))]
@@ -23,10 +56,15 @@ class Paragraph(basetext.BaseText):
 
     def search(self, value):
         '''
-        Search the paragraph for a regular expression match.
+        Search the paragraph text for a regular expression match.
+
+        Args:
+            search_value(str): Regex pattern to find in paragraph text
+        Returns:
+            A bool value depending on whether at least one match of the
+            value pattern was found in the paragraph text
         '''
-        match = re.search(value, self.text)
-        if match is not None:
+        if re.search(value, self.text) is not None:
             return True
         return False
 
@@ -34,7 +72,12 @@ class Paragraph(basetext.BaseText):
         '''
         Replace all instances of a regular expression match in the paragraph with
         another string. If a match does not lie entirely within a single span,
-        then the new text will be appended only to the first span in the match. 
+        then the new text will be appended only to the first span in the match.
+
+        Args:
+            search_value(str): String to find in paragraph text
+            replace_value(str): New string that replaces all instances
+                of search_value
         '''
         searchre = re.compile(search_value)
         match_slices = [match.span() for match in re.finditer(searchre, self.text)]

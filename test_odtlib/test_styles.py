@@ -1,16 +1,10 @@
 import unittest
-import string
-import sys
 import os
-import tempfile
-import zipfile
-import shutil
-import copy
 from odtlib import text
 from test_odtlib import specs
 from odtlib import style
 from odtlib import api
-from odtlib.text import Paragraph
+from odtlib.text import Paragraph, Span
 
 class TestStyles(unittest.TestCase):
 
@@ -28,6 +22,24 @@ class TestStyles(unittest.TestCase):
         self.assertEqual(s.bold, None)
         self.assertEqual(s.italic, None)
         self.assertEqual(s.color, None)
+
+    def test_bold_with_text(self):
+        p = Paragraph()
+        p.bold = True
+        self.assertTrue(p.bold)
+
+    def test_bold_with_style(self):
+        s = style.Style('mystyle', 'paragraph')
+        s.bold = False
+        self.assertFalse(s.bold)
+        p = Paragraph(style=s)
+        self.assertFalse(p.bold)
+
+    def test_change_text_property(self):
+        p = Paragraph()
+        p.italic = True
+        p.italic = False
+        self.assertFalse(p.italic)
 
     @classmethod
     def tearDownClass(cls):

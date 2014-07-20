@@ -65,8 +65,6 @@ class BaseText:
                 return None
             if tprops.get(attrconstant) != first_value:
                 return None
-        # if not change_value:
-        #     return first_value
         # Inverse dict lookup because we're sharing this constant dict with the Style class
         for key in PROPERTY_INPUT_MAP[prop]:
             if PROPERTY_INPUT_MAP[prop][key] == first_value:
@@ -92,18 +90,20 @@ class BaseText:
                 tprops.set(attr, prop_dict[value])
             except KeyError:
                 raise ValueError("Invalid value {} for {} property".format(value, prop))
-        if self.style is not None:
-            if self._get_property(prop) != value:
-                self.style = None
-                if self._ele.tag == qn('text', 'p'):
-                    [span._set_property(value, prop) for span in self.spans]
+        # if the new property value does not match the property value for the current
+        # style, then change this wrapper's style to None and, if necessary,
+        # do the same for all attached span wrappers
+        if self.style is not None and self._get_property(prop) != value:
+            self.style = None
+            if self._ele.tag == qn('text', 'p'):
+                [span._set_property(value, prop) for span in self.spans]
 
 
     def _attach_style(self, automatic, office):
         '''
-        Return this text wrapper's style wrapper or build one based on
-        this text wrapper's properties. Only called during
-        OpenDocumentText.save()
+        If necessary, create text:style-name and style:name attribute/value pairs for the
+        BaseText _style and _ele elements, respectively. Then, if a duplicate style is
+        not found in <office:styles>, append the style to the end of <office:styles>.
         '''
         if self.style is None:
             combined = copy.deepcopy(list(automatic) + list(office))

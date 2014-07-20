@@ -26,7 +26,9 @@ def write_xml_files(xmlfiles, folder):
         with open(abspath, 'w') as f:
             f.write(etree.tostring(element, xml_declaration=True).decode(encoding='UTF-8'))
 
-def makeelement(prefix, tagname, text='', attributes={}):
+def makeelement(prefix, tagname, text='', attributes=None):
+    if attributes is None:
+        attributes = {}
     namespace = qn(prefix, tagname)
     newelement = etree.Element(namespace, nsmap=NSMAP)
     for k, v in attributes.items():
@@ -39,7 +41,7 @@ def makeelement(prefix, tagname, text='', attributes={}):
     return newelement
 
 def remove_children(element, tag=None):
-    for child in element.iterchildren():
+    for child in element.iterchildren(tag):
         element.remove(child)
 
 def remove_substr(start, end, mystr):
@@ -55,8 +57,8 @@ def contains_match_start(start, end, match_slices):
     Test whether at least one match begins within the scope of an element
     text boundaries
     '''
-    for slice in match_slices:
-        if start <= slice[0] < end:
+    for s in match_slices:
+        if start <= s[0] < end:
             return True
     return False
 
@@ -64,8 +66,8 @@ def lies_within_match(start, end, match_slices):
     '''
     Test whether entire an element text lies entirely within a match
     '''
-    for slice in match_slices:
-        if start >= slice[0] and slice[1] >= end:
+    for s in match_slices:
+        if start >= s[0] and s[1] >= end:
             return True
     return False
 
@@ -133,7 +135,7 @@ def compare_elements(a, b, attributes_to_exclude=[]):
         [b_copy.tag, b_copy.tail, b_copy.text, b_copy.attrib, len(list(b_copy))]):
         return False
     equivalent_children = []
-    for i, a_child in enumerate(a.iterchildren(), start=1):
+    for a_child in a.iterchildren():
         for b_child in b.iterchildren():
             if (b_child not in equivalent_children and
                 compare_elements(a_child, b_child, attributes_to_exclude)):
