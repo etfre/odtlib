@@ -1,5 +1,5 @@
 from odtlib.utilities import shared
-from odtlib.namespace import NSMAP, qn, qn22
+from odtlib.namespace import NSMAP, qn
 
 class ElementList:
     def __init__(self, parent, check_function, data=None):
@@ -98,22 +98,22 @@ def get_shift(i, ele):
     '''
     shift = 0
     for index, child in enumerate(ele.iterchildren()):
-        if child.tag not in (qn22('text:p'), qn22('text:h')):
+        if child.tag not in (qn('text:p'), qn('text:h')):
             shift += 1
         if index > i:
             break
     return shift
 
 def get_correct_children(parent):
-    assert parent.tag in [qn22('office:text'), qn22('text:p'), qn22('text:h')]
-    if parent.tag == qn22('office:text'):
+    assert parent.tag in [qn('office:text'), qn('text:p'), qn('text:h')]
+    if parent.tag == qn('office:text'):
         children = []
         for child in parent.iterchildren():
-            if child.tag in (qn22('text:p'), qn22('text:h')):
+            if child.tag in (qn('text:p'), qn('text:h')):
                 children.append(child)
         return children
     else:
-        return parent.findall(qn22('text:span'))
+        return parent.findall(qn('text:span'))
 
 def get_slice_info(i, modlist):
     start = i.start

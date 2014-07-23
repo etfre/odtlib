@@ -6,16 +6,16 @@ from odtlib import text, style
 from odtlib import baselist
 from odtlib.base import baseodt
 from odtlib.utilities import shared, odt, textutilities
-from odtlib.namespace import NSMAP, qn, qn22
+from odtlib.namespace import NSMAP, qn
 
 class OpenDocumentText(baseodt.BaseOpenDocumentText):
     def __init__(self, filename=None):
         super().__init__(filename)
         data = []
         for ele in self._text:
-            if ele.tag == qn22('text:p'):
+            if ele.tag == qn('text:p'):
                 data.append(text.Paragraph._from_element(ele))
-            elif ele.tag == qn22('text:h'):
+            elif ele.tag == qn('text:h'):
                 data.append(text.Heading._from_element(ele))
         self.paragraphs = baselist.ElementList(self._text,
                                                text.check_paragraph_input,
@@ -31,8 +31,8 @@ class OpenDocumentText(baseodt.BaseOpenDocumentText):
         shutil.make_archive(filename, 'zip', self._write_dir)
         os.rename('{}.zip'.format(filename), filename),
         shutil.rmtree(self._write_dir)
-        assert len(self.paragraphs) == (len(self._text.findall(qn22('text:p'))) +
-            len(self._text.findall(qn22('text:h'))))
+        assert len(self.paragraphs) == (len(self._text.findall(qn('text:p'))) +
+            len(self._text.findall(qn('text:h'))))
 
     def search(self, value):
         return [para for para in self.paragraphs if para.search(value)]

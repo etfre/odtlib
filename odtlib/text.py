@@ -2,7 +2,7 @@ import re
 from odtlib.utilities import shared, textutilities
 from odtlib.base import basetext
 from odtlib import baselist
-from odtlib.namespace import NSMAP, qn, qn22
+from odtlib.namespace import NSMAP, qn
 
 class Paragraph(basetext.BaseText):
     '''
@@ -44,10 +44,10 @@ class Paragraph(basetext.BaseText):
         Returns:
             Paragraph wrapper for <text: p> element
         '''
-        assert ele.tag == qn22('text:p')
+        assert ele.tag == qn('text:p')
         para = cls(shared.get_paragraph_text(ele))
         para._ele = ele
-        data = [Span._from_element(s) for s in ele.findall(qn22('text:span'))]
+        data = [Span._from_element(s) for s in ele.findall(qn('text:span'))]
         para.spans = baselist.ElementList(ele, check_span_input, data=data)
         return para
 
@@ -80,9 +80,9 @@ class Heading(basetext.BaseText):
             text: String that contains 
         '''
         super().__init__('h', style)
-        self._style_copy.set(qn22('style:parent-style-name'), 'Heading_20_{}'.format(level))
+        self._style_copy.set(qn('style:parent-style-name'), 'Heading_20_{}'.format(level))
         self.level = level
-        self._ele.set(qn22('text:outline-level'), level)
+        self._ele.set(qn('text:outline-level'), level)
         data = set_data(text, style)
         self.spans = baselist.ElementList(self._ele, check_span_input, data=data)
 
@@ -99,10 +99,10 @@ class Heading(basetext.BaseText):
         Returns:
             Paragraph wrapper for <text:h> element
         '''
-        assert ele.tag == qn22('text:h')
+        assert ele.tag == qn('text:h')
         para = cls(shared.get_paragraph_text(ele))
         para._ele = ele
-        data = [Span._from_element(s) for s in ele.findall(qn22('text:span'))]
+        data = [Span._from_element(s) for s in ele.findall(qn('text:span'))]
         para.spans = baselist.ElementList(ele, check_span_input, data=data)
         return para
 

@@ -1,7 +1,7 @@
 from odtlib.utilities import shared
 from odtlib import constants
 
-from odtlib.namespace import NSMAP, qn, qn22
+from odtlib.namespace import NSMAP, qn
 from copy import deepcopy
 
 class Style:
@@ -9,32 +9,32 @@ class Style:
         assert isinstance(name, str)
         self._ele = shared.makeelement('style', 'style')
         self._ele.append(shared.makeelement('style', 'text-properties'))
-        self._ele.set(qn22('style:name'), name)
-        self._ele.set(qn22('style:family'), family)
+        self._ele.set(qn('style:name'), name)
+        self._ele.set(qn('style:family'), family)
 
     @classmethod
     def _from_element(cls, ele):
-        name = ele.attrib[qn22('style:name')]
-        family = ele.attrib[qn22('style:family')]
+        name = ele.attrib[qn('style:name')]
+        family = ele.attrib[qn('style:family')]
         style = cls(name, family)
         style._ele = ele
         return style
 
     @property
     def name(self):
-        return self._ele.get(qn22('style:name'))
+        return self._ele.get(qn('style:name'))
 
     @name.setter
     def name(self, value):
-        self._ele.set(qn22('style:name'), value)
+        self._ele.set(qn('style:name'), value)
 
     @property
     def family(self):
-        return self._ele.get(qn22('style:family'))
+        return self._ele.get(qn('style:family'))
 
     @family.setter
     def family(self, value):
-        self._ele.set(qn22('style:family'), value)
+        self._ele.set(qn('style:family'), value)
 
     @property
     def bold(self):
@@ -61,7 +61,7 @@ class Style:
         self._set_property(value, 'color')
 
     def _get_property(self, prop):
-        tprops = self._ele.find(qn22('style:text-properties'))
+        tprops = self._ele.find(qn('style:text-properties'))
         for i, attrconstant in enumerate(constants.STYLE_ATTRIBUTES[prop]):
             if i == 0:
                 first_value = tprops.get(attrconstant)
@@ -77,7 +77,7 @@ class Style:
 
     def _set_property(self, value, prop):
         prop_dict = constants.PROPERTY_INPUT_MAP[prop]
-        tprops = self._ele.find(qn22('style:text-properties'))
+        tprops = self._ele.find(qn('style:text-properties'))
         for attr in constants.STYLE_ATTRIBUTES[prop]:
             if value is None:
                 if attr in tprops.attrib:
@@ -112,7 +112,7 @@ def build_styles_dict(styles_elements):
     '''
     styledict = {}
     for styles in styles_elements.values():
-        for s in styles.iterchildren(qn22('style:style')):
+        for s in styles.iterchildren(qn('style:style')):
             wrapper = Style._from_element(s)
             styledict[wrapper.name] = wrapper
     return styledict
@@ -121,11 +121,11 @@ def add_standard_styles(ele):
     pass
 
 def get_family(wrapper):
-    if wrapper._ele.tag == qn22('text:p'):
+    if wrapper._ele.tag == qn('text:p'):
         return 'paragraph'
-    if wrapper._ele.tag == qn22('text:h'):
+    if wrapper._ele.tag == qn('text:h'):
         return 'paragraph'
-    if wrapper._ele.tag == qn22('text:span'):
+    if wrapper._ele.tag == qn('text:span'):
         return 'text'
 
 def get_name(family, styles):
@@ -134,7 +134,7 @@ def get_name(family, styles):
         letter = family[0].upper()
     num = 1
     name = '{}{}'.format(letter, num)
-    while name in [s.get(qn22('style:name')) for s in styles]:
+    while name in [s.get(qn('style:name')) for s in styles]:
         num += 1
         name = '{}{}'.format(letter, num)
     return name

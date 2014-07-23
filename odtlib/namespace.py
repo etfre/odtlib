@@ -11,7 +11,7 @@ NSMAP = {
 def qn(prefix, tagname):
 	return '{{{}}}{}'.format(NSMAP[prefix], tagname)
 
-def qn22(namespace):
+def qn(namespace):
 	spl = namespace.split(':')
 	assert len(spl) == 2
 	return '{{{}}}{}'.format(NSMAP[spl[0]], spl[1])

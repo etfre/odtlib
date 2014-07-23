@@ -4,7 +4,7 @@ import zipfile
 import os
 from odtlib.utilities import shared, odt, styleutilities
 from odtlib import style
-from odtlib.namespace import NSMAP, qn, qn22
+from odtlib.namespace import NSMAP, qn
 
 class BaseOpenDocumentText:
     def __init__(self, filename):
@@ -16,7 +16,7 @@ class BaseOpenDocumentText:
         self._xmlfiles = shared.load_xml_files(self._write_dir)
         self._styles_elements = odt.get_style_containers(self._xmlfiles['content.xml'], self._xmlfiles['styles.xml'])
         styleutilities.update_styles_file(self._styles_elements['stylefile office'])
-        self._text = self._xmlfiles['content.xml'].find(qn22('office:body')).find(qn22('office:text'))
+        self._text = self._xmlfiles['content.xml'].find(qn('office:body')).find(qn('office:text'))
         self._default_styles = odt.get_default_styles(self._xmlfiles['styles.xml'])
         odt.convert_to_spans(self._text)
 
