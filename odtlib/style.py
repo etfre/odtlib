@@ -1,5 +1,5 @@
 from odtlib.utilities import shared
-from odtlib.constants.styleattribs import STYLE_ATTRIBUTES, BASE_STYLE_PROPERTIES, PROPERTY_INPUT_MAP
+from odtlib import constants
 
 from odtlib.namespace import NSMAP, qn
 from copy import deepcopy
@@ -60,11 +60,9 @@ class Style:
     def color(self, value):
         self._set_property(value, 'color')
 
-
-
     def _get_property(self, prop):
         tprops = self._ele.find(qn('style', 'text-properties'))
-        for i, attrconstant in enumerate(STYLE_ATTRIBUTES[prop]):
+        for i, attrconstant in enumerate(constants.STYLE_ATTRIBUTES[prop]):
             if i == 0:
                 first_value = tprops.get(attrconstant)
             if tprops.get(attrconstant) is None:
@@ -72,15 +70,15 @@ class Style:
             if tprops.get(attrconstant) != first_value:
                 return None
         # Inverse dict lookup because we're sharing this constant dict with the Style class
-        for key in PROPERTY_INPUT_MAP[prop]:
-            if PROPERTY_INPUT_MAP[prop][key] == first_value:
+        for key in constants.PROPERTY_INPUT_MAP[prop]:
+            if constants.PROPERTY_INPUT_MAP[prop][key] == first_value:
                 return key
         return first_value
 
     def _set_property(self, value, prop):
-        prop_dict = PROPERTY_INPUT_MAP[prop]
+        prop_dict = constants.PROPERTY_INPUT_MAP[prop]
         tprops = self._ele.find(qn('style', 'text-properties'))
-        for attr in STYLE_ATTRIBUTES[prop]:
+        for attr in constants.STYLE_ATTRIBUTES[prop]:
             if value is None:
                 if attr in tprops.attrib:
                     del tprops.attrib[attr]
@@ -107,20 +105,25 @@ def matches_attributes(value, element, attributes):
             return False
     return True
 
-def build_styles_dict(automatic, office):
+def build_styles_dict(styles_elements):
     '''
-    Return a list of style wrappers. Create an <office: styles>
+    Return a list of style wrappers. Create an <office:styles>
     element if one does not already exist.
     '''
     styledict = {}
-    for styles in [automatic, office]:
+    for styles in styles_elements.values():
         for s in styles.iterchildren(qn('style', 'style')):
             wrapper = Style._from_element(s)
             styledict[wrapper.name] = wrapper
     return styledict
 
+def add_standard_styles(ele):
+    pass
+
 def get_family(wrapper):
     if wrapper._ele.tag == qn('text', 'p'):
+        return 'paragraph'
+    if wrapper._ele.tag == qn('text', 'h'):
         return 'paragraph'
     if wrapper._ele.tag == qn('text', 'span'):
         return 'text'

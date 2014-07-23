@@ -7,20 +7,37 @@ from lxml import etree
 from odtlib.namespace import NSMAP, qn
 
 def load_xml_files(folder):
+    '''
+    Create and return dictionary that maps relative paths of
+    all xml-parsable files in a folder with a corresponding lxml
+    element
+
+    Args:
+        folder: String path of a folder
+    Returns:
+        Dictionary with relative path/element mappings
+    '''
     xmlfiles = {}
     for root, dirs, files in os.walk(folder):
         for filename in files:
             abspath = os.path.join(root, filename)
-            relpath = os.path.relpath(abspath, folder)
             try:
                 with open(abspath) as f:
                     xmlfile = (etree.fromstring(f.read().encode('utf_8')))
-                    xmlfiles[relpath] = xmlfile
+                    xmlfiles[os.path.relpath(abspath, folder)] = xmlfile
             except (UnicodeDecodeError, etree.XMLSyntaxError):
                 pass
     return xmlfiles
 
 def write_xml_files(xmlfiles, folder):
+    '''
+    Write a dictionary of lxml elements to files in a folder
+
+    Args:
+        xmlfiles: Dictionary with relative path/element mappings
+        folder: String path of a folder to which the elements in
+            xmlfiles will be copied
+    '''
     for filename, element in xmlfiles.items():
         abspath = os.path.join(folder, filename)
         with open(abspath, 'w') as f:
@@ -103,6 +120,8 @@ def get_paragraph_text(ele):
             textlist.append(span.text)
         if span.tail is not None:
             textlist.append(span.tail)
+    if ele.tail is not None:
+        textlist.append(ele.tail)
     return ''.join(textlist)
 
 def get_style_name(element):
@@ -110,7 +129,7 @@ def get_style_name(element):
     Given a <text:p> or <text:span> element, return a string
     indicating the name of the associated style element
     '''
-    assert element.tag in [qn('text', 'p'), qn('text', 'span')]
+    assert element.tag in [qn('text', 'h'), qn('text', 'p'), qn('text', 'span')]
     for attribute, value in element.attrib.items():
         if attribute == qn('text', 'style-name'): return value
 
@@ -121,9 +140,23 @@ def get_or_make_child(ele, prefix, tag):
         ele.append(child) 
     return child
 
-def compare_elements(a, b, attributes_to_exclude=[]):
-    if not isinstance(attributes_to_exclude, list):
+def compare_elements(a, b, attributes_to_exclude=None):
+    '''
+    Compare two elements for matching text, attributes, tails, tags and
+    children.
+
+    Args:
+        a: First etree element to compare
+        b: Second etree element to compare
+        attributes_to_exclude (kwarg): List of attributes to ignore in
+            both elements
+    Returns: True or false based on whether elements match
+    '''
+    if attributes_to_exclude is None:
+        attributes_to_exclude = []
+    elif not isinstance(attributes_to_exclude, list):
         attributes_to_exclude = [attributes_to_exclude]
+    # TODO: remove copies
     a_copy = copy.deepcopy(a)
     b_copy = copy.deepcopy(b)
     for attr in attributes_to_exclude:
@@ -134,6 +167,7 @@ def compare_elements(a, b, attributes_to_exclude=[]):
     if ([a_copy.tag, a_copy.tail, a_copy.text, a_copy.attrib, len(list(a_copy))] !=
         [b_copy.tag, b_copy.tail, b_copy.text, b_copy.attrib, len(list(b_copy))]):
         return False
+    # Run recursively to make sure children match as well
     equivalent_children = []
     for a_child in a.iterchildren():
         for b_child in b.iterchildren():

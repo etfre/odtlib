@@ -4,7 +4,8 @@ from odtlib import text
 from test_odtlib import specs
 from odtlib import style
 from odtlib import api
-from odtlib.text import Paragraph, Span
+from odtlib.text import Paragraph
+
 
 class TestStyles(unittest.TestCase):
 

@@ -2,7 +2,7 @@ from lxml import etree
 import tempfile
 import zipfile
 import os
-from odtlib.utilities import shared, odt
+from odtlib.utilities import shared, odt, styleutilities
 from odtlib import style
 from odtlib.namespace import NSMAP, qn
 
@@ -14,21 +14,21 @@ class BaseOpenDocumentText:
         with zipfile.ZipFile(filename, 'r') as odtzip:
             odtzip.extractall(self._write_dir)
         self._xmlfiles = shared.load_xml_files(self._write_dir)
-        self._content = self._xmlfiles['content.xml']
-        self._automatic_styles, self._office_styles = odt.get_style_containers(self._content)
-        self._body = self._xmlfiles['content.xml'].find(qn('office', 'body'))
-        self._text = self._body.find(qn('office', 'text'))
+        self._styles_elements = odt.get_style_containers(self._xmlfiles['content.xml'], self._xmlfiles['styles.xml'])
+        styleutilities.update_styles_file(self._styles_elements['stylefile office'])
+        self._text = self._xmlfiles['content.xml'].find(qn('office', 'body')).find(qn('office', 'text'))
         self._default_styles = odt.get_default_styles(self._xmlfiles['styles.xml'])
         odt.convert_to_spans(self._text)
 
     def _update_styles(self):
         for para in self.paragraphs:
-            para._attach_style(self._automatic_styles, self._office_styles)
+            para._attach_style(self._styles_elements)
             for span in para.spans:
-                span._attach_style(self._automatic_styles, self._office_styles)
+                span._attach_style(self._styles_elements)
 
     def __enter__(self):
-        pass
+        doc = self.__init__()
+        print('doc')
 
     def __exit__ (self, type, value, tb):
         pass

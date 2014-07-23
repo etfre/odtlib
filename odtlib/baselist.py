@@ -9,8 +9,8 @@ class ElementList:
         self._parent = parent
         self._check_function = check_function
         self._list = []
-        self._parent.extend([wrapper._ele for wrapper in data])
         if data is not None:
+            self._parent.extend([wrapper._ele for wrapper in data])
             self._list.extend(data)
 
     def __len__(self):

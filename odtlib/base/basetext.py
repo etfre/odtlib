@@ -1,14 +1,15 @@
 import re
 import copy
 from odtlib.utilities import shared, textutilities
-from odtlib.lists import baselist
+from odtlib import baselist
 from odtlib.namespace import NSMAP, qn
-from odtlib.constants.styleattribs import BASE_STYLE_PROPERTIES, STYLE_ATTRIBUTES, PROPERTY_INPUT_MAP
+from odtlib import constants
 from odtlib import style
 
 class BaseText:
-    def __init__(self, s):
+    def __init__(self, tag, s):
         assert s is None or isinstance(s, style.Style)
+        self._ele = shared.makeelement('text', tag)
         self._style = s
         # _style_copy allows us to track "stylelike" xml properties at a lower
         # level even if a style is not currently attached. When self.style is a wrapper,
@@ -56,9 +57,48 @@ class BaseText:
     def color(self, value):
         self._set_property(value, 'color')
 
+    def search(self, value):
+        '''
+        Search the paragraph text for a regular expression match.
+
+        Args:
+            search_value(str): Regex pattern to find in paragraph text
+        Returns:
+            A bool value depending on whether at least one match of the
+            value pattern was found in the paragraph text
+        '''
+        if re.search(value, self.text) is not None:
+            return True
+        return False
+
+    def replace(self, search_value, replace_value):
+        '''
+        Replace all instances of a regular expression match in the paragraph with
+        another string. If a match does not lie entirely within a single span,
+        then the new text will be appended only to the first span in the match.
+
+        Args:
+            search_value(str): String to find in paragraph text
+            replace_value(str): New string that replaces all instances
+                of search_value
+        '''
+        searchre = re.compile(search_value)
+        match_slices = [match.span() for match in re.finditer(searchre, self.text)]
+        eledict = shared.create_replace_dict(self, match_slices)
+        # replace in reversed order to avoid dealing with shifted index positions
+        for match in reversed(match_slices):
+            for ele, info in reversed(list(eledict.items())):
+                if info[0] <= match[1]:
+                    if match[0] < info[0]:
+                         ele.text = shared.remove_substr(0, match[1] - info[0], ele.text)
+                    else:
+                        ele.text = shared.remove_substr(match[0] - info[0], match[1] - info[0], ele.text)
+                        ele.text = shared.insert_substr(match[0] - info[0], replace_value, ele.text)
+                        break
+
     def _get_property(self, prop):
         tprops = self._style_copy.find(qn('style', 'text-properties'))
-        for i, attrconstant in enumerate(STYLE_ATTRIBUTES[prop]):
+        for i, attrconstant in enumerate(constants.STYLE_ATTRIBUTES[prop]):
             if i == 0:
                 first_value = tprops.get(attrconstant)
             if tprops.get(attrconstant) is None:
@@ -66,15 +106,15 @@ class BaseText:
             if tprops.get(attrconstant) != first_value:
                 return None
         # Inverse dict lookup because we're sharing this constant dict with the Style class
-        for key in PROPERTY_INPUT_MAP[prop]:
-            if PROPERTY_INPUT_MAP[prop][key] == first_value:
+        for key in constants.PROPERTY_INPUT_MAP[prop]:
+            if constants.PROPERTY_INPUT_MAP[prop][key] == first_value:
                 return key
         return first_value
 
     def _set_property(self, value, prop):
-        prop_dict = PROPERTY_INPUT_MAP[prop]
+        prop_dict = constants.PROPERTY_INPUT_MAP[prop]
         tprops = self._style_copy.find(qn('style', 'text-properties'))
-        for attr in STYLE_ATTRIBUTES[prop]:
+        for attr in constants.STYLE_ATTRIBUTES[prop]:
             if value is None:
                 if attr in tprops.attrib:
                     del tprops.attrib[attr]
@@ -98,15 +138,14 @@ class BaseText:
             if self._ele.tag == qn('text', 'p'):
                 [span._set_property(value, prop) for span in self.spans]
 
-
-    def _attach_style(self, automatic, office):
+    def _attach_style(self, styles_dict):
         '''
         If necessary, create text:style-name and style:name attribute/value pairs for the
         BaseText _style and _ele elements, respectively. Then, if a duplicate style is
         not found in <office:styles>, append the style to the end of <office:styles>.
         '''
         if self.style is None:
-            combined = copy.deepcopy(list(automatic) + list(office))
+            combined = copy.deepcopy(list(styles_dict['automatic']) + list(styles_dict['other']) + list(styles_dict['stylefile office']))
             family = style.get_family(self)
             name = style.get_name(family, combined)
             self._style_copy.set(qn('style', 'name'), name)
@@ -116,9 +155,16 @@ class BaseText:
                     s.get(qn('style', 'name')) is not None):
                     self._ele.set(qn('text', 'style-name'), s.get(qn('style', 'name')))
                     return
-            self._ele.set(qn('text', 'style-name'), name)       
-            office.append(self._style_copy)
+            self._ele.set(qn('text', 'style-name'), name)
+            # Apparently Heading styles need to go under <office:automatic-styles>
+            if self._ele.tag == qn('text', 'h'):
+                styles_dict['automatic'].append(self._style_copy)
+                return        
+            styles_dict['other'].append(self._style_copy)
         else:
             self._ele.set(qn('text', 'style-name'), self.style.name)
-            office.append(self.style._ele)
+            if self._ele.tag == qn('text', 'h'):
+                styles_dict['automatic'].append(self.style._ele)
+                return
+            styles_dict['other'].append(self.style._ele)
 
