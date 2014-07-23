@@ -4,7 +4,7 @@ import re
 import collections
 import copy
 from lxml import etree
-from odtlib.namespace import NSMAP, qn
+from odtlib.namespace import NSMAP, qn, qn22
 
 def load_xml_files(folder):
     '''
@@ -46,14 +46,13 @@ def write_xml_files(xmlfiles, folder):
 def makeelement(prefix, tagname, text='', attributes=None):
     if attributes is None:
         attributes = {}
-    namespace = qn(prefix, tagname)
+    namespace = qn22('{}:{}'.format(prefix, tagname))
     newelement = etree.Element(namespace, nsmap=NSMAP)
     for k, v in attributes.items():
         try:
             newelement.set(k, v)
         except ValueError:
-            spl = k.split(':')
-            newelement.set(qn(spl[0], spl[1]), v)
+            newelement.set(qn22(k), v)
     if text: newelement.text = text
     return newelement
 
@@ -115,7 +114,7 @@ def get_paragraph_text(ele):
     textlist = []
     if ele.text is not None:
         textlist.append(ele.text)
-    for span in ele.iter(qn('text', 'span')):
+    for span in ele.iter(qn22('text:span')):
         if span.text is not None:
             textlist.append(span.text)
         if span.tail is not None:
@@ -129,12 +128,12 @@ def get_style_name(element):
     Given a <text:p> or <text:span> element, return a string
     indicating the name of the associated style element
     '''
-    assert element.tag in [qn('text', 'h'), qn('text', 'p'), qn('text', 'span')]
+    assert element.tag in [qn22('text:h'), qn22('text:p'), qn22('text:span')]
     for attribute, value in element.attrib.items():
-        if attribute == qn('text', 'style-name'): return value
+        if attribute == qn22('text:style-name'): return value
 
 def get_or_make_child(ele, prefix, tag):
-    child = ele.find(qn(prefix, tag))
+    child = ele.find(qn22('{}:{}'.format(prefix, tag)))
     if child is None:
         child = makeelement(prefix, tag)
         ele.append(child) 

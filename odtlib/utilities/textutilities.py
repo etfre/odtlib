@@ -1,4 +1,4 @@
-from odtlib.namespace import NSMAP, qn
+from odtlib.namespace import NSMAP, qn, qn22
 from odtlib.utilities import shared
 
 def attach_style_wrapper(text_wrapper, styles):
@@ -7,6 +7,6 @@ def attach_style_wrapper(text_wrapper, styles):
 		text_wrapper.style = styles[stylename]
 	except KeyError:
 		text_wrapper.style = None
-	if text_wrapper._ele.tag == qn('text', 'p'):
+	if text_wrapper._ele.tag == qn22('text:p'):
 		for span in text_wrapper.spans:
 			attach_style_wrapper(span, styles)

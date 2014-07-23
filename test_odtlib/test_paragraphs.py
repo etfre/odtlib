@@ -58,8 +58,6 @@ class TestParagraphs(unittest.TestCase):
         self.doc.paragraphs.insert(2, 'Third Placeholder Paragraph')
         self.doc.paragraphs.insert(4, 'Fifth Placeholder Paragraph')
 
-
-
     def test_paragraph_list_append(self):
         self.doc.paragraphs.append("I like avocados.")
         p = text.Paragraph('They are delicious.')

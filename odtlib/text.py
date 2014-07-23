@@ -2,7 +2,7 @@ import re
 from odtlib.utilities import shared, textutilities
 from odtlib.base import basetext
 from odtlib import baselist
-from odtlib.namespace import NSMAP, qn
+from odtlib.namespace import NSMAP, qn, qn22
 
 class Paragraph(basetext.BaseText):
     '''
@@ -44,32 +44,12 @@ class Paragraph(basetext.BaseText):
         Returns:
             Paragraph wrapper for <text: p> element
         '''
-        assert ele.tag == qn('text', 'p')
+        assert ele.tag == qn22('text:p')
         para = cls(shared.get_paragraph_text(ele))
         para._ele = ele
-        data = [Span._from_element(s) for s in ele.findall(qn('text', 'span'))]
+        data = [Span._from_element(s) for s in ele.findall(qn22('text:span'))]
         para.spans = baselist.ElementList(ele, check_span_input, data=data)
         return para
-
-    @property
-    def text(self):
-        from_wrappers = ''.join([span.text for span in self.spans])
-        from_elements = shared.get_paragraph_text(self._ele)
-        assert from_wrappers == from_elements
-        return from_elements
-
-    @text.setter
-    def text(self, value):
-        # If the new text value is shorter or different than before
-        if len(value) < len(self.text) or value[:len(self.text)] != self.text:
-            del self.spans[:]
-            self.spans.append(value) 
-        else:
-            extra = value[len(self.text):]
-            if self._ele.findall(qn('text', 'span')):
-               self.spans[-1].text += extra
-            else:
-                self.spans.append(extra)
 
 class Span(basetext.BaseText):
     def __init__(self, text='', style=None):
@@ -81,16 +61,6 @@ class Span(basetext.BaseText):
         span = cls(ele.text)
         span._ele = ele
         return span
-
-    @property
-    def text(self):
-        if self._ele.text is None:
-            return ''
-        return self._ele.text
-
-    @text.setter
-    def text(self, value):
-        self._ele.text = value
 
 class Heading(basetext.BaseText):
     '''
@@ -110,8 +80,9 @@ class Heading(basetext.BaseText):
             text: String that contains 
         '''
         super().__init__('h', style)
-        self._style_copy.set(qn('style', 'parent-style-name'), 'Heading_20_{}'.format(level))
-        self._ele.set(qn('text', 'outline-level'), level)
+        self._style_copy.set(qn22('style:parent-style-name'), 'Heading_20_{}'.format(level))
+        self.level = level
+        self._ele.set(qn22('text:outline-level'), level)
         data = set_data(text, style)
         self.spans = baselist.ElementList(self._ele, check_span_input, data=data)
 
@@ -128,40 +99,17 @@ class Heading(basetext.BaseText):
         Returns:
             Paragraph wrapper for <text:h> element
         '''
-        assert ele.tag == qn('text', 'h')
+        assert ele.tag == qn22('text:h')
         para = cls(shared.get_paragraph_text(ele))
         para._ele = ele
-        data = [Span._from_element(s) for s in ele.findall(qn('text', 'span'))]
+        data = [Span._from_element(s) for s in ele.findall(qn22('text:span'))]
         para.spans = baselist.ElementList(ele, check_span_input, data=data)
         return para
-
-    # @property
-    # def text(self):
-    #     from_wrappers = ''.join([span.text for span in self.spans])
-    #     from_elements = shared.get_paragraph_text(self._ele)
-    #     assert from_wrappers == from_elements
-    #     return from_elements
-
-    # @text.setter
-    # def text(self, value):
-    #     # If the new text value is shorter or different than before
-    #     if len(value) < len(self.text) or value[:len(self.text)] != self.text:
-    #         del self.spans[:]
-    #         self.spans.append(value) 
-    #     else:
-    #         extra = value[len(self.text):]
-    #         if self._ele.findall(qn('text', 'span')):
-    #            self.spans[-1].text += extra
-    #         else:
-    #             self.spans.append(extra)
-
-
 
 def set_data(text, style):
     if text:
         return [Span(text)]
     return []
-
 
 def check_paragraph_input(para):
     if isinstance(para, str):

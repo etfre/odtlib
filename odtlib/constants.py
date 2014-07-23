@@ -1,5 +1,5 @@
 from lxml import etree
-from odtlib.namespace import qn, NSMAP
+from odtlib.namespace import NSMAP, qn, qn22
 
 BASE_STYLE_PROPERTIES = {
 	'bold': None,
@@ -7,15 +7,15 @@ BASE_STYLE_PROPERTIES = {
 	'color': None,
 }
 
-FONT_WEIGHT = qn('fo', 'font-weight')
-FONT_WEIGHT_ASIAN = qn('style', 'font-weight-asian')
-FONT_WEIGHT_COMPLEX = qn('style', 'font-weight-complex')
+FONT_WEIGHT = qn22('fo:font-weight')
+FONT_WEIGHT_ASIAN = qn22('style:font-weight-asian')
+FONT_WEIGHT_COMPLEX = qn22('style:font-weight-complex')
 
-FONT_STYLE = qn('fo', 'font-style')
-FONT_STYLE_ASIAN = qn('style', 'font-style-asian')
-FONT_STYLE_COMPLEX = qn('style', 'font-style-complex')
+FONT_STYLE = qn22('fo:font-style')
+FONT_STYLE_ASIAN = qn22('style:font-style-asian')
+FONT_STYLE_COMPLEX = qn22('style:font-style-complex')
 
-FONT_COLOR = qn('fo', 'color')
+FONT_COLOR = qn22('fo:color')
 
 STYLE_ATTRIBUTES = {
 	'bold': (FONT_WEIGHT, FONT_WEIGHT_ASIAN, FONT_WEIGHT_COMPLEX),

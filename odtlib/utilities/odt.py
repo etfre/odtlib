@@ -1,6 +1,6 @@
 from copy import deepcopy
 from odtlib.utilities import shared
-from odtlib.namespace import NSMAP, qn
+from odtlib.namespace import NSMAP, qn, qn22
 from odtlib import style
 
 def convert_to_spans(text_parent):
@@ -9,13 +9,13 @@ def convert_to_spans(text_parent):
     This will be reversed by convert_from_spans when the document is saved.
     '''
     for para in text_parent.iterchildren():
-        if para.tag in [qn('text', 'p'), qn('text', 'h')]:
+        if para.tag in [qn22('text:p'), qn22('text:h')]:
             new_list = []
             style_name = shared.get_style_name(para)
             attributes = deepcopy(para.attrib)
             if para.text:
                 new_list.append(make_span(para.text, style_name))
-            for span in para.iterchildren(qn('text', 'span')):
+            for span in para.iterchildren(qn22('text:span')):
                 new_list.append(span)
                 if span.tail is not None:
                     new_list.append(make_span(span.tail, style_name))
@@ -32,13 +32,13 @@ def convert_from_spans(text_parent):
     text.
     '''
     for para in text_parent.iterchildren():
-        if para.tag in [qn('text', 'p'), qn('text', 'h')]:
+        if para.tag in [qn22('text:p'), qn22('text:h')]:
             new_list = []
             para_style = shared.get_style_name(para)
             attributes = deepcopy(para.attrib)
             previous = None
             paratext = ''
-            for span in para.iterchildren(qn('text', 'span')):
+            for span in para.iterchildren(qn22('text:span')):
                 span_style = shared.get_style_name(span)
                 if para_style == span_style:
                     if previous == None:
@@ -62,9 +62,9 @@ def get_style_containers(content, styles_file):
     they do not already exist.
     '''
     styles_dict = {
-        'automatic': content.find(qn('office', 'automatic-styles')),
-        'other': content.find(qn('office', 'styles')),
-        'stylefile office': styles_file.find(qn('office', 'styles')),
+        'automatic': content.find(qn22('office:automatic-styles')),
+        'other': content.find(qn22('office:styles')),
+        'stylefile office': styles_file.find(qn22('office:styles')),
     }
     if styles_dict['automatic'] is None:
         styles_dict['automatic'] = shared.makeelement('office', 'automatic-styles')
@@ -82,11 +82,11 @@ def make_span(text, style_name):
     Given text and a style name, create and return a <text:span> element
     '''
     return shared.makeelement('text', 'span', text,
-                              {qn('text', 'style-name'): style_name})
+                              {qn22('text:style-name'): style_name})
 
 def get_default_styles(root):
     wrappers = {}
-    for s in root.find(qn('office', 'styles')).iterchildren(qn('style', 'style')):
+    for s in root.find(qn22('office:styles')).iterchildren(qn22('style:style')):
         wrapper = style.Style._from_element(s)
         wrappers[wrapper.name] = wrapper
     return wrappers
