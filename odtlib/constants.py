@@ -1,12 +1,6 @@
 from lxml import etree
 from odtlib.namespace import NSMAP, qn
 
-BASE_STYLE_PROPERTIES = {
-	'bold': None,
-	'italics': None,
-	'color': None,
-}
-
 FONT_WEIGHT = qn('fo:font-weight')
 FONT_WEIGHT_ASIAN = qn('style:font-weight-asian')
 FONT_WEIGHT_COMPLEX = qn('style:font-weight-complex')

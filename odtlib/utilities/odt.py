@@ -78,18 +78,17 @@ def make_span(text, style_name):
     '''
     Given text and a style name, create and return a <text:span> element
     '''
-    try:
-        return shared.makeelement('text', 'span', text,
-            {qn('text:style-name'): style_name})
-    except TypeError:
+    if style_name is None:
         return shared.makeelement('text', 'span', text)
-
+    return shared.makeelement('text', 'span', text, {qn('text:style-name'): style_name})
+    
 def get_default_styles(root):
     wrappers = {}
     for s in root.find(qn('office:styles')).iterchildren(qn('style:style')):
         wrapper = style.Style._from_element(s)
         wrappers[wrapper.name] = wrapper
     return wrappers
+
 
 
 

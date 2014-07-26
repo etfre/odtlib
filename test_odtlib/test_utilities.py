@@ -86,6 +86,7 @@ class TestUtilities(unittest.TestCase):
     def test_convert_to_spans(self):
         para = shared.makeelement('text', 'p')
         para.text = 'starting paragraph text.'
+        para.set(qn('text:style-name'), 'P1')
         span1 = shared.makeelement('text', 'span', 'Foist span txt')
         tab = shared.makeelement('text', 'tab')
         tab.tail = 'more text after the tab'
@@ -94,6 +95,19 @@ class TestUtilities(unittest.TestCase):
         span1.set(qn('text:style-name'), 'T1')
         para.append(span1)
         odt.convert_to_spans(para)
+        self.assertIsNone(para.text)
+        self.assertEqual(list(para)[0].tag, qn('text:span'))
+        self.assertEqual(list(para)[0].text, 'starting paragraph text.')
+        self.assertEqual(list(para)[0].get(qn('text:style-name')), 'P1')
+        self.assertEqual(list(para)[1].tag, qn('text:span'))
+        self.assertEqual(list(para)[1].text, 'Foist span txt')
+        self.assertEqual(list(para)[1].get(qn('text:style-name')), 'T1')
+        self.assertIsNone(list(para)[1].tail)
+        self.assertEqual(list(list(para)[1])[0].tag, qn('text:tab'))
+        self.assertEqual(list(list(para)[1])[0].tail, 'more text after the tab')
+        self.assertEqual(list(para)[2].tag, qn('text:span'))
+        self.assertEqual(list(para)[2].text, 'This becomes a new span')
+        self.assertEqual(list(para)[2].get(qn('text:style-name')), 'P1')
         
 
     def test_convert_from_spans(self):
