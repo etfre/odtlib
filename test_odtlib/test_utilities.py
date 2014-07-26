@@ -2,8 +2,6 @@ import unittest
 import string
 import sys
 import os
-import tempfile
-import zipfile
 import shutil
 import copy
 from lxml import etree
@@ -11,7 +9,7 @@ from odtlib import text
 from test_odtlib import specs
 from odtlib.namespace import NSMAP, qn
 from odtlib import api
-from odtlib.utilities import shared
+from odtlib.utilities import shared, textutilities, odt
 
 
 class TestUtilities(unittest.TestCase):
@@ -37,6 +35,8 @@ class TestUtilities(unittest.TestCase):
             files['improper']
         shutil.rmtree('dir')
 
+    def test_get_paragraph_text(self):
+        pass
 
     def test_remove_substr(self):
         mystr = 'First, I decree double rations for all officers to aid their decision-making capabilities'
@@ -51,8 +51,8 @@ class TestUtilities(unittest.TestCase):
     def test_makeelement(self):
         self.assertEqual(self.p.tag, '{{{}}}{}'.format(NSMAP['text'], 'p'))
         self.assertEqual(self.p.text, 'Hello world!')
-        self.assertEqual(self.p.attrib.get(qn('style:name')), '1')
-        self.assertEqual(self.p.attrib.get(qn('style:family')), 'paragraph')
+        self.assertEqual(self.p.get(qn('style:name')), '1')
+        self.assertEqual(self.p.get(qn('style:family')), 'paragraph')
         self.assertEqual(len(self.p.attrib), 2)
 
     def test_compare_elements_true(self):
@@ -81,6 +81,23 @@ class TestUtilities(unittest.TestCase):
         p1.extend([s1, s2])
         p2.extend([s4, s3])
         self.assertFalse(shared.compare_elements(p1, p2, qn('style:name')))
+
+
+    def test_convert_to_spans(self):
+        para = shared.makeelement('text', 'p')
+        para.text = 'starting paragraph text.'
+        span1 = shared.makeelement('text', 'span', 'Foist span txt')
+        tab = shared.makeelement('text', 'tab')
+        tab.tail = 'more text after the tab'
+        span1.append(tab)
+        span1.tail = 'This becomes a new span'
+        span1.set(qn('text:style-name'), 'T1')
+        para.append(span1)
+        odt.convert_to_spans(para)
+        
+
+    def test_convert_from_spans(self):
+        pass
 
        
 

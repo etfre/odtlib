@@ -18,7 +18,10 @@ class BaseOpenDocumentText:
         styleutilities.update_styles_file(self._styles_elements['stylefile office'])
         self._text = self._xmlfiles['content.xml'].find(qn('office:body')).find(qn('office:text'))
         self._default_styles = odt.get_default_styles(self._xmlfiles['styles.xml'])
-        odt.convert_to_spans(self._text)
+        for child in self._text.iterchildren():
+            if child.tag in [qn('text:p'), qn('text:h')]:
+                odt.convert_to_spans(child)
+        # odt.convert_to_spans(self._text)
 
     def _update_styles(self):
         for para in self.paragraphs:

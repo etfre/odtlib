@@ -1,59 +1,56 @@
-from copy import deepcopy
+import copy
 from odtlib.utilities import shared
 from odtlib.namespace import NSMAP, qn
 from odtlib import style
 
-def convert_to_spans(text_parent):
+def convert_to_spans(ele):
     '''
-    Convert all paragraph text to spans for easier API handling.
+    Convert paragraph text to spans for easier API handling.
     This will be reversed by convert_from_spans when the document is saved.
     '''
-    for para in text_parent.iterchildren():
-        if para.tag in [qn('text:p'), qn('text:h')]:
-            new_list = []
-            style_name = shared.get_style_name(para)
-            attributes = deepcopy(para.attrib)
-            if para.text:
-                new_list.append(make_span(para.text, style_name))
-            for span in para.iterchildren(qn('text:span')):
-                new_list.append(span)
-                if span.tail is not None:
-                    new_list.append(make_span(span.tail, style_name))
-                    span.tail = None
-            para.clear()
-            para.extend(new_list)
-            for attr, value in attributes.items():
-                para.set(attr, value)
+    new_list = []
+    style_name = ele.get(qn('text:style-name'))
+    attributes = copy.deepcopy(ele.attrib)
+    if ele.text:
+        new_list.append(make_span(ele.text, style_name))
+    for child in ele.iterchildren():
+        new_list.append(child)
+        if child.tail is not None:
+            new_list.append(make_span(child.tail, style_name))
+            child.tail = None
+    ele.clear()
+    ele.extend(new_list)
+    for attr, value in attributes.items():
+        ele.set(attr, value)
 
-def convert_from_spans(text_parent):
+
+def convert_from_spans(ele):
     '''
     Every span with a style matching the style of its containing
     paragraph is removed, and its text becomes part of the paragaph's
     text.
     '''
-    for para in text_parent.iterchildren():
-        if para.tag in [qn('text:p'), qn('text:h')]:
-            new_list = []
-            para_style = shared.get_style_name(para)
-            attributes = deepcopy(para.attrib)
-            previous = None
-            paratext = ''
-            for span in para.iterchildren(qn('text:span')):
-                span_style = shared.get_style_name(span)
-                if para_style == span_style:
-                    if previous == None:
-                        paratext += span.text
-                    else:
-                        previous.tail = span.text
-                else:
-                    new_list.append(span)
-                    previous = span
-            para.clear()
-            if len(paratext):
-                para.text = paratext
-            para.extend(new_list)
-            for attr, value in attributes.items():
-                para.set(attr, value)
+    new_list = []
+    ele_style = ele.get(qn('text:style-name'))
+    attributes = copy.deepcopy(ele.attrib)
+    previous = None
+    paratext = ''
+    for child in ele.iterchildren():
+        child_style = shared.get_style_name(child)
+        if ele_style == child_style:
+            if previous == None:
+                paratext += child.text
+            else:
+                previous.tail = child.text
+        else:
+            new_list.append(child)
+            previous = child
+    ele.clear()
+    if paratext:
+        ele.text = paratext
+    ele.extend(new_list)
+    for attr, value in attributes.items():
+        ele.set(attr, value)
 
 def get_style_containers(content, styles_file):
     '''
@@ -81,8 +78,11 @@ def make_span(text, style_name):
     '''
     Given text and a style name, create and return a <text:span> element
     '''
-    return shared.makeelement('text', 'span', text,
-                              {qn('text:style-name'): style_name})
+    try:
+        return shared.makeelement('text', 'span', text,
+            {qn('text:style-name'): style_name})
+    except TypeError:
+        return shared.makeelement('text', 'span', text)
 
 def get_default_styles(root):
     wrappers = {}

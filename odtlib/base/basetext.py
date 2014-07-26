@@ -37,7 +37,7 @@ class BaseText:
     def text(self):
         if self._ele.tag in (qn('text:p'), qn('text:h')):
             from_wrappers = ''.join([span.text for span in self.spans])
-            from_elements = shared.get_paragraph_text(self._ele)
+            from_elements = textutilities.get_paragraph_text(self._ele)
             assert from_wrappers == from_elements
             return from_elements
         # span
@@ -172,30 +172,26 @@ class BaseText:
         BaseText _style and _ele elements, respectively. Then, if a duplicate style is
         not found in <office:styles>, append the style to the end of <office:styles>.
         '''
-        # TODO: refactor
+        combined = copy.deepcopy(list(styles_dict['automatic']) +
+                         list(styles_dict['other']) +
+                         list(styles_dict['stylefile office']))
         if self.style is None:
-            combined = copy.deepcopy(list(styles_dict['automatic']) +
-                                     list(styles_dict['other']) +
-                                     list(styles_dict['stylefile office']))
             family = style.get_family(self)
             name = style.get_name(family, combined)
             self._style_copy.set(qn('style:name'), name)
             self._style_copy.set(qn('style:family'), family)
-            for s in combined:
-                if (shared.compare_elements(self._style_copy, s, qn('style:name')) and
-                    s.get(qn('style:name')) is not None):
-                    self._ele.set(qn('text:style-name'), s.get(qn('style:name')))
-                    return
             self._ele.set(qn('text:style-name'), name)
-            # Apparently Heading styles need to go under <office:automatic-styles>
-            if self._ele.tag == qn('text:h'):
-                styles_dict['automatic'].append(self._style_copy)
-                return        
-            styles_dict['other'].append(self._style_copy)
         else:
             self._ele.set(qn('text:style-name'), self.style.name)
-            if self._ele.tag == qn('text:h'):
-                styles_dict['automatic'].append(self.style._ele)
+        # Check to ensure that this style does not already exist
+        for s in combined:
+            if (shared.compare_elements(self._style_copy, s, qn('style:name')) and
+                s.get(qn('style:name')) is not None):
+                self._ele.set(qn('text:style-name'), s.get(qn('style:name')))
                 return
-            styles_dict['other'].append(self.style._ele)
+        # Apparently Heading-related styles need to go under <office:automatic-styles>
+        if self._ele.tag == qn('text:h'):
+            styles_dict['automatic'].append(self._style_copy)
+            return
+        styles_dict['other'].append(self._style_copy)
 

@@ -8,9 +8,6 @@ NSMAP = {
 	'text': 'urn:oasis:names:tc:opendocument:xmlns:text:1.0',
 }
 
-def qn(prefix, tagname):
-	return '{{{}}}{}'.format(NSMAP[prefix], tagname)
-
 def qn(namespace):
 	spl = namespace.split(':')
 	assert len(spl) == 2

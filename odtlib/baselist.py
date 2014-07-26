@@ -4,7 +4,7 @@ from odtlib.namespace import NSMAP, qn
 class ElementList:
     def __init__(self, parent, check_function, data=None):
         '''
-        Container for Paragraph and Span wrappers.
+        Container for Paragraph/Heading and Span wrappers.
         '''
         self._parent = parent
         self._check_function = check_function

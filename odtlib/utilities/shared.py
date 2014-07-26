@@ -110,27 +110,15 @@ def get_tag(namespace):
 def get_prefix(namespace):
     return re.match(r'{([^}]*)}', namespace).group(1)
 
-def get_paragraph_text(ele):
-    textlist = []
-    if ele.text is not None:
-        textlist.append(ele.text)
-    for span in ele.iter(qn('text:span')):
-        if span.text is not None:
-            textlist.append(span.text)
-        if span.tail is not None:
-            textlist.append(span.tail)
-    if ele.tail is not None:
-        textlist.append(ele.tail)
-    return ''.join(textlist)
-
 def get_style_name(element):
     '''
     Given a <text:p> or <text:span> element, return a string
     indicating the name of the associated style element
     '''
     assert element.tag in [qn('text:h'), qn('text:p'), qn('text:span')]
-    for attribute, value in element.attrib.items():
-        if attribute == qn('text:style-name'): return value
+    return element.get(qn('text:style-name'))
+    # for attribute, value in element.attrib.items():
+    #     if attribute == qn('text:style-name'): return value
 
 def get_or_make_child(ele, prefix, tag):
     child = ele.find(qn('{}:{}'.format(prefix, tag)))
@@ -147,9 +135,10 @@ def compare_elements(a, b, attributes_to_exclude=None):
     Args:
         a: First etree element to compare
         b: Second etree element to compare
-        attributes_to_exclude (kwarg): List of attributes to ignore in
-            both elements
+        attributes_to_exclude: List of attributes to ignore in both
+            elements
     Returns: True or false based on whether elements match
+    
     '''
     if attributes_to_exclude is None:
         attributes_to_exclude = []

@@ -26,7 +26,9 @@ class OpenDocumentText(baseodt.BaseOpenDocumentText):
 
     def save(self, filename):
         self._update_styles()
-        odt.convert_from_spans(self._text)
+        for para in self._text.iterchildren():
+            if para.tag in [qn('text:p'), qn('text:h')]:
+                odt.convert_from_spans(para)
         shared.write_xml_files(self._xmlfiles, self._write_dir)
         shutil.make_archive(filename, 'zip', self._write_dir)
         os.rename('{}.zip'.format(filename), filename),

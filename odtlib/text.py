@@ -6,15 +6,17 @@ from odtlib.namespace import NSMAP, qn
 
 class Paragraph(basetext.BaseText):
     '''
-    Paragraph wrapper for <text: p> element. Note that all of the
+    Paragraph wrapper for <text:p> element. Note that all of the
     style-based properties of this class, such as bold or italic,
     can be set to None, in which case they will defer to the default
     document style for that property.
 
     Attributes:
-        spans: List of span wrappers representing the <text: span>
+        spans: List of span wrappers representing the <text:span>
             elements that lie within this paragraph.
         text: String containing the entirety of the paragraph's text.
+        style: Style wrapper object representing the paragraph's style
+            element.
         bold: Bool indicating whether or not this paragraph's text
             displays as bold.
 
@@ -34,18 +36,18 @@ class Paragraph(basetext.BaseText):
     @classmethod
     def _from_element(cls, ele):
         '''
-        Create a paragraph wrapper for a <text: p> element. Used
+        Create a paragraph wrapper for a <text:p> element. Used
         internally. Do **not** call this method as part of the odtlib
         API.
 
         Args:
-            ele: etree <text: p> element off of which the
-                wrapper is based
+            ele: etree <text:p> element off of which the wrapper is
+                based
         Returns:
-            Paragraph wrapper for <text: p> element
+            Paragraph wrapper for <text:p> element
         '''
         assert ele.tag == qn('text:p')
-        para = cls(shared.get_paragraph_text(ele))
+        para = cls(textutilities.get_paragraph_text(ele))
         para._ele = ele
         data = [Span._from_element(s) for s in ele.findall(qn('text:span'))]
         para.spans = baselist.ElementList(ele, check_span_input, data=data)
@@ -64,7 +66,7 @@ class Span(basetext.BaseText):
 
 class Heading(basetext.BaseText):
     '''
-    Heading wrapper for <text: h> element.
+    Heading wrapper for <text:h> element.
     
     Attributes:
         spans: List of span wrappers representing the <text:span>
@@ -74,7 +76,7 @@ class Heading(basetext.BaseText):
 
     def __init__(self, text='', style=None, level='1'):
         '''
-        Constructor method for the Paragraph wrapper.
+        Constructor method for the Heading wrapper.
 
         Args:
             text: String that contains 
@@ -97,10 +99,10 @@ class Heading(basetext.BaseText):
             ele: etree <text:h> element off of which the
                 wrapper is based
         Returns:
-            Paragraph wrapper for <text:h> element
+            Heading wrapper for <text:h> element
         '''
         assert ele.tag == qn('text:h')
-        para = cls(shared.get_paragraph_text(ele))
+        para = cls(textutilities.get_paragraph_text(ele))
         para._ele = ele
         data = [Span._from_element(s) for s in ele.findall(qn('text:span'))]
         para.spans = baselist.ElementList(ele, check_span_input, data=data)
@@ -108,7 +110,7 @@ class Heading(basetext.BaseText):
 
 def set_data(text, style):
     if text:
-        return [Span(text)]
+        return [Span(text, style)]
     return []
 
 def check_paragraph_input(para):
