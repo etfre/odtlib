@@ -42,3 +42,7 @@ class OpenDocumentText(baseodt.BaseOpenDocumentText):
     def replace(self, search_value, replace_value):
         for para in self.paragraphs:
             para.replace(search_value, replace_value)
+
+    @property
+    def text(self):
+        return [para.text for para in self.paragraphs]

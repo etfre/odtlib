@@ -36,9 +36,8 @@ def convert_from_spans(ele):
     previous = None
     paratext = ''
     for child in ele.iterchildren():
-        child_style = shared.get_style_name(child)
-        if ele_style == child_style:
-            if previous == None:
+        if ele_style == child.get(qn('text:style-name')):
+            if previous is None:
                 paratext += child.text
             else:
                 previous.tail = child.text

@@ -111,7 +111,21 @@ class TestUtilities(unittest.TestCase):
         
 
     def test_convert_from_spans(self):
-        pass
+        para = shared.makeelement('text', 'p', attributes={qn('text:style-name'): 'P1'})
+        span1 = shared.makeelement('text', 'span', 'First!', {qn('text:style-name'): 'P1'})
+        span2 = shared.makeelement('text', 'span', 'Second!', {qn('text:style-name'): 'P1'})
+        span3 = shared.makeelement('text', 'span', 'Third!', {qn('text:style-name'): 'T1'})
+        span4 = shared.makeelement('text', 'span', 'Fourth!', {qn('text:style-name'): 'P1'})
+        span5 = shared.makeelement('text', 'span', 'Fifth!', {qn('text:style-name'): 'T2'})
+        para.extend([span1, span2, span3, span4, span5])
+        odt.convert_from_spans(para)
+        self.assertEqual(para.text, 'First!Second!')
+        self.assertEqual(list(para)[0].text, 'Third!')
+        self.assertEqual(list(para)[0].get(qn('text:style-name')), 'T1')
+        self.assertEqual(list(para)[0].tail, 'Fourth!')
+        self.assertEqual(list(para)[1].text, 'Fifth!')
+        self.assertEqual(list(para)[1].get(qn('text:style-name')), 'T2')
+        self.assertEqual(len(list(para)), 2)
 
        
 
