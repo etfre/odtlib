@@ -35,31 +35,20 @@ class BaseText:
 
     @property
     def text(self):
-        if self._ele.tag in (qn('text:p'), qn('text:h')):
-            from_wrappers = ''.join([span.text for span in self.spans])
-            from_elements = textutilities.get_paragraph_text(self._ele)
-            assert from_wrappers == from_elements
-            return from_elements
-        # span
-        if self._ele.text is None:
-            return ''
-        return self._ele.text
+        return ''.join([span.text for span in self.spans])
 
     @text.setter
     def text(self, value):
-        if self._ele.tag in (qn('text:p'), qn('text:h')):
-            # If the new text value is shorter or different than before
-            if len(value) < len(self.text) or value[:len(self.text)] != self.text:
-                del self.spans[:]
-                self.spans.append(value) 
-            else:
-                extra = value[len(self.text):]
-                if self._ele.findall(qn('text:span')):
-                   self.spans[-1].text += extra
-                else:
-                    self.spans.append(extra)
+        # If the new text value is shorter or different than before
+        if len(value) < len(self.text) or value[:len(self.text)] != self.text:
+            del self.spans[:]
+            self.spans.append(value) 
         else:
-            self._ele.text = value
+            extra = value[len(self.text):]
+            if self._ele.findall(qn('text:span')):
+               self.spans[-1].text += extra
+            else:
+                self.spans.append(extra)
 
     @property
     def bold(self):

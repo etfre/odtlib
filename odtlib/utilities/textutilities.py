@@ -40,3 +40,10 @@ def parse_text(ele):
     pos = 0
     print(ele.text)
     print(list(ele))
+
+def append_to_last(ele, textlist):
+    if textlist:
+        if list(ele):
+            list(ele)[-1].tail = ''.join(textlist)
+        else:
+            ele.text = ''.join(textlist)

@@ -64,6 +64,33 @@ class Span(basetext.BaseText):
         span._ele = ele
         return span
 
+    @property
+    def text(self):
+        textlist = []
+        if self._ele.text is not None:
+            textlist.append(self._ele.text)
+        for child in self._ele.iterchildren():
+            if child.tag == qn('text:tab'):
+                textlist.append('\t')
+                if child.tail is not None:
+                    textlist.append(child.tail)
+        return ''.join([t for t in textlist])
+
+    @text.setter
+    def text(self, value):
+        shared.remove_children(self._ele)
+        textlist = []
+        for char in value:
+            if char == '\t':
+                textutilities.append_to_last(self._ele, textlist)                  
+                self._ele.append(shared.makeelement('text', 'tab'))
+                textlist = []
+                continue
+            else:
+                textlist.append(char)
+        textutilities.append_to_last(self._ele, textlist)
+        # self._ele.text = value
+
 class Heading(basetext.BaseText):
     '''
     Heading wrapper for <text:h> element.

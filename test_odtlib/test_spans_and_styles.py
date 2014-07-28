@@ -6,7 +6,9 @@ import tempfile
 import zipfile
 import shutil
 import copy
+from odtlib.namespace import qn
 from odtlib import text
+from odtlib.utilities import shared
 from test_odtlib import specs
 from odtlib import api
 
@@ -15,6 +17,23 @@ class TestSpansAndStyles(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.doc = api.OpenDocumentText(os.path.join(os.path.dirname(__file__), 'files', 'spansandstyles.odt'))
+
+    def test_span_text_getter(self):
+        ele = shared.makeelement('text', 'span', 'Text before the tab!')
+        tab = shared.makeelement('text', 'tab')
+        tab.tail = 'Text that comes after the tab'
+        ele.append(tab)
+        wrapper = text.Span._from_element(ele)
+        self.assertEqual(wrapper.text, 'Text before the tab!\tText that comes after the tab')
+
+    def test_span_text_setter(self):
+        span1 = text.Span('Span text\t')
+        span1.text += 'More text after the tab'
+        self.assertEqual(len(span1._ele.findall(qn('text:tab'))), 1)
+        self.assertEqual(span1.text, 'Span text\tMore text after the tab')
+        span1.text = 'Now this is the text'
+        self.assertEqual(span1.text, 'Now this is the text')
+
 
     def test_span_list_setup(self):
         for p in self.doc.paragraphs:
